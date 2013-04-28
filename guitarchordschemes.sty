@@ -1,0 +1,196 @@
+\ProvidesPackage{guitarchordschemes}
+
+\RequirePackage{tikz,etoolbox,pgfopts}
+\RequirePackage{realbookchords}
+\usetikzlibrary{shapes.misc,arrows,calc}
+
+\def\gcs@finger@font{\sffamily\small}
+\def\gcs@position@font{\sffamily}
+\def\gcs@chord@name@font{\large}
+\def\gcs@string@name@format{\small\sffamily}
+
+\def\gcs@chord@x@unit{.8cm}
+\def\gcs@chord@y@unit{.8cm}
+\def\gcs@chord@line@width{1pt}
+\def\gcs@finger@radius{.15cm}
+\def\gcs@finger@x@offset{3mm}
+\def\gcs@finger@y@offset{3mm}
+\def\gcs@finger@color{black}
+\def\gcs@root@color{black}
+\def\gcs@showroot@color{black}
+\def\gcs@ringing@color{black}
+\def\gcs@muted@color{black}
+
+\pgfkeys{
+  guitarchordschemes/.cd ,
+    x-unit/.code             = \def\gcs@chord@x@unit{#1} ,
+    y-unit/.code             = \def\gcs@chord@y@unit{#1} ,
+    finger-format/.code      = \def\gcs@finger@font{#1} ,
+    position-format/.code    = \def\gcs@position@font{#1} ,
+    name-format/.code        = \def\gcs@chord@name@font{#1} ,
+    line-width/.code         = \def\gcs@chord@line@width{#1} ,
+    finger-radius/.code      = \def\gcs@finger@radius{#1} ,
+    finger-x-offset/.code    = \def\gcs@finger@x@offset{#1} ,
+    finger-y-offset/.code    = \def\gcs@finger@y@offset{#1} ,
+    finger-color/.code       =
+      \def\gcs@finger@color{#1}
+      \def\gcs@root@color{#1}
+      \def\gcs@showroot@color{#1} ,
+    root-color/.code         =
+      \def\gcs@root@color{#1}
+      \def\gcs@showroot@color{#1} ,
+    show-root-color/.code    = \def\gcs@showroot@color{#1} ,
+    ringing-color/.code      = \def\gcs@ringing@color{#1} ,
+    muted-color/.code        = \def\gcs@muted@color{#1} ,
+    tuning/.code             = \gcs@chord@tuning{#1} ,
+    string-name-format/.code = \def\gcs@string@name@format{#1}
+}
+
+\newcounter{gcs@string@number}
+
+\newcommand\gcs@chord@tuning[1]{%
+  \setcounter{gcs@string@number}{0}%
+  \foreach \string@name in {#1}
+    {%
+      \stepcounter{gcs@string@number}%
+      \csxdef{guitar@string@\arabic{gcs@string@number}}{\expandonce\string@name}%
+    }%
+}
+
+\newrobustcmd\setchordscheme[1]{\pgfqkeys{/guitarchordschemes}{#1}}
+
+\setchordscheme{
+  tuning= {E,B,G,D,A,E}
+}
+
+\ProcessPgfOptions*
+
+\tikzset{
+  finger/.style =
+    {
+      xshift = \gcs@finger@x@offset ,
+      yshift = \gcs@finger@y@offset ,
+      font   = \gcs@finger@font
+    }
+}
+
+\pgfkeys{
+  chord/.cd ,
+    name/.code      = \gcs@chord@name{#1} ,
+    position/.code  = \def\gcs@chord@position{#1} ,
+    finger/.code    = \gcs@chord@finger{#1} ,
+    root/.code      = \gcs@chord@root{#1} ,
+    show-root/.code = \gcs@chord@show@root{#1} ,
+    mute/.code      = \gcs@chord@mute{#1} ,
+    ring/.code      = \gcs@chord@ring{#1} ,
+    barre/.code     = \gcs@chord@barre{#1}
+}
+
+\newcommand\gcs@chord@finger[1]{%
+  \foreach \finger@x/\finger@y/\finger@number in {#1}
+    {
+      \pgfmathsetmacro\finger@fret{1.5*\finger@x-0.75}
+      \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
+      \draw[fill,\gcs@finger@color] (\finger@fret,\finger@string) circle (\gcs@finger@radius) ;
+      \node[finger] at (\finger@fret,\finger@string) {\finger@number} ;
+    }
+}
+
+\newcommand\gcs@chord@barre[1]{%
+  \foreach \barre@x/\barre@fromto/\barre@finger in {#1}
+    {
+      \pgfmathsetmacro\barre@fret{1.5*\barre@x-0.75}
+      \expandafter\gcs@barre@getstrings\barre@fromto\q@stop
+      \pgfmathsetmacro\barre@lower@string{(6-\barre@lower@y)*4/5}
+      \pgfmathsetmacro\barre@upper@string{(6-\barre@upper@y)*4/5}
+      \draw[\gcs@finger@color,round cap-round cap,line width=2*\gcs@finger@radius]
+        (\barre@fret,\barre@lower@string) node[finger] {\barre@finger}
+        ++ (0,\gcs@finger@radius)
+        --
+        ($(\barre@fret,\barre@upper@string)+(0,-\gcs@finger@radius)$)
+      ;
+    }
+}
+
+\def\gcs@barre@getstrings#1-#2\q@stop{%
+  \def\barre@lower@y{#1}%
+  \def\barre@upper@y{#2}%
+}
+
+\newcommand\gcs@chord@root[1]{%
+  \foreach \finger@x/\finger@y/\finger@number in {#1}
+    {
+      \pgfmathsetmacro\finger@fret{1.5*\finger@x-0.75}
+      \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
+      \node[fill,\gcs@root@color,minimum size=2*\gcs@finger@radius] at (\finger@fret,\finger@string) {} ;
+      \node[finger] at (\finger@fret,\finger@string) {\finger@number} ;
+    }
+}
+
+\newcommand\gcs@chord@show@root[1]{%
+  \foreach \finger@x/\finger@y in {#1}
+    {
+      \pgfmathsetmacro\finger@fret{1.5*\finger@x-0.75}
+      \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
+      \node[draw,\gcs@showroot@color,minimum size=2*\gcs@finger@radius] at (\finger@fret,\finger@string) {} ;
+    }
+}
+
+\newcommand\gcs@chord@mute[1]{%
+  \foreach \muted@string in {#1}
+    {
+      \pgfmathsetmacro\muted@string@pos{(6-\muted@string)*4/5}
+      \node[\gcs@muted@color,cross out,draw] at (0,\muted@string@pos) {} ;
+    }
+}
+
+\newcommand\gcs@chord@ring[1]{%
+  \foreach \ringing@string in {#1}
+    {
+      \pgfmathsetmacro\ringing@string@pos{(6-\ringing@string)*4/5}
+      \draw[\gcs@ringing@color] (0,\ringing@string@pos) circle (\gcs@finger@radius) ;
+    }
+}
+
+\newcommand\gcs@chord@name[1]{%
+  \node[above,yshift=4ex] at (3,4) {
+  \foreach \gcs@chord@name@variant in {#1}
+    { \gcs@chord@name@font\space\expandafter\rbc\expandafter{\gcs@chord@name@variant}\space }
+  } ;
+}
+
+\newrobustcmd\chordscheme[1][]{%
+\begingroup
+\begin{tikzpicture}[
+   x=\gcs@chord@x@unit,
+   y=\gcs@chord@y@unit,
+   line width=\gcs@chord@line@width,
+   baseline=(6thstring)
+ ]
+ \coordinate (6thstring) at (0,0) ;
+ \foreach \fret in { 0,1.5,3,4.5,6 }
+   { \draw (\fret,0) -- (\fret,4) ; }
+ \foreach \string@pos/\string@number in
+   { 0/6, 0.8/5, 1.6/4, 2.4/3, 3.2/2, 4/1, 0 }
+   {
+     \draw (0,\string@pos) node[left,minimum width=2em]
+       {\gcs@string@name@format\csuse{guitar@string@\string@number}} -- (6,\string@pos) ;
+   }
+ \pgfqkeys{/chord}{#1}%
+ \node[above,yshift=1ex,font=\gcs@position@font] at (.75,4) {\gcs@chord@position} ;
+\end{tikzpicture}
+\endgroup
+}
+
+\newrobustcmd\fingersymbol{%
+  \tikz\draw[fill,\gcs@finger@color] (0,0) circle (\gcs@finger@radius);}
+\newrobustcmd\rootsymbol{%
+  \tikz\node[fill,\gcs@root@color,minimum size=2*\gcs@finger@radius] at (0,0) {} ;}
+\newrobustcmd\showrootsymbol{%
+  \tikz\node[draw,\gcs@showroot@color,minimum size=2*\gcs@finger@radius,line width=\gcs@chord@line@width] at (0,0) {} ;}
+\newrobustcmd\ringingstring{%
+  \tikz\draw[draw,\gcs@ringing@color,line width=\gcs@chord@line@width] (0,0) circle (\gcs@finger@radius);}
+\newrobustcmd\mutedstring{%
+  \tikz\node[cross out,draw,\gcs@muted@color,line width=\gcs@chord@line@width] at (0,0) {};}
+
+\endinput
