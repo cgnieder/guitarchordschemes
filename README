@@ -1,9 +1,9 @@
 --------------------------------------------------------------------------
-the GUITARCHORDSCHEMES package v 0.1
+the GUITARCHORDSCHEMES package v 0.2
 
   Typesetting jazz chords with the `Real Book' way
 
-2013/04/28
+2013/04/30
 --------------------------------------------------------------------------
 Clemens Niederberger
 Web:    https://bitbucket.org/cgnieder/guitarchordschemes/
@@ -25,6 +25,7 @@ The Current Maintainer of this work is Clemens Niederberger.
 --------------------------------------------------------------------------
 The guitarchordschemes package consists of the files
  - guitarchordschemes.sty,
+ - guitarchordschemes_en.tex, guitarchordschemes_en.pdf
  - README
 --------------------------------------------------------------------------
 If you have any ideas, questions, suggestions or bugs to report, please

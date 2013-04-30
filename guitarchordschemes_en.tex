@@ -1,0 +1,379 @@
+% arara: xelatex
+% arara: biber
+% arara: xelatex
+% arara: xelatex
+% --------------------------------------------------------------------------
+% the GUITARCHORDSCHEMES package
+% 
+%   Guitar Chord Tablatures with TikZ
+% 
+% --------------------------------------------------------------------------
+% Clemens Niederberger
+% Web:    https://bitbucket.org/cgnieder/guitarchordschemes/
+% E-Mail: contact@mychemistry.eu
+% --------------------------------------------------------------------------
+% Copyright 2012--2013 Clemens Niederberger
+% 
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+% 
+% This work has the LPPL maintenance status `maintained'.
+% 
+% The Current Maintainer of this work is Clemens Niederberger.
+% --------------------------------------------------------------------------
+% The guitarchordschemes package consists of the files
+%  - guitarchordschemes.sty,
+%  - guitarchordschemes_en.tex,
+%  - guitarchordschemes_en.pdf,
+%  - README
+% --------------------------------------------------------------------------
+% If you have any ideas, questions, suggestions or bugs to report, please
+% feel free to contact me.
+% --------------------------------------------------------------------------
+\documentclass[toc=index,toc=bib]{cnpkgdoc}
+\docsetup{
+  pkg      = [use-rbc]guitarchordschemes ,
+  subtitle = Guitar Chord Tablatures with \TikZ ,
+  code-box = {
+    backgroundcolor  = gray!7!white ,
+    skipbelow        = .6\baselineskip plus .5ex minus .5ex ,
+    skipabove        = .6\baselineskip plus .5ex minus .5ex ,
+    roundcorner      = 3pt ,
+  } ,
+  gobble   = 1
+}
+\usepackage{polyglossia}
+\setmainlanguage{english}
+\usepackage[oldstyle,proportional]{libertine}
+\usepackage{libertinehologopatch}
+\cnpkgusecolorscheme{friendly}
+
+\setmonofont[Ligatures=TeX,Scale=MatchLowercase]{Bitstream Vera Sans Mono}
+
+\usepackage{fnpct}
+\pagestyle{headings}
+
+\usepackage[biblatex]{embrac}[2013/03/22]
+\ChangeEmph{[}[,.02em]{]}[.055em,-.08em]
+\ChangeEmph{(}[-.01em,.04em]{)}[.04em,-.05em]
+
+\renewcommand*\othersectionlevelsformat[3]{%
+  \textcolor{main}{#3\autodot}\enskip}
+\renewcommand*\partformat{%
+  \textcolor{main}{\partname~\thepart\autodot}}
+
+\addcmds{
+  chordscheme,
+  setchordscheme,
+  textsuperscript
+}
+
+\usepackage{filecontents}
+\usepackage{imakeidx}
+\begin{filecontents*}{\jobname.ist}
+ heading_prefix "{\\bfseries "
+ heading_suffix "\\hfil}\\nopagebreak\n"
+ headings_flag  1
+ delim_0 "\\dotfill\\hyperpage{"
+ delim_1 "\\dotfill\\hyperpage{"
+ delim_2 "\\dotfill\\hyperpage{"
+ delim_r "}\\textendash\\hyperpage{"
+ delim_t "}"
+ suffix_2p "\\nohyperpage{\\,f.}"
+ suffix_3p "\\nohyperpage{\\,ff.}"
+\end{filecontents*}
+\indexsetup{othercode=\footnotesize}
+\makeindex[options={-s \jobname.ist},intoc,columns=3,columnsep=1em]
+
+\usepackage[backend=biber,style=alphabetic]{biblatex}
+\addbibresource{\jobname.bib}
+\begin{filecontents}{\jobname.bib}
+@online{web:pietsch:fonts,
+  author  = {Jochen Pietsch} ,
+  title   = {Jazz Fonts} ,
+  url     = {http://notation.jochenpietsch.de/index_e.html} ,
+  urldate = {2012-05-10}
+}
+@package{pkg:etoolbox,
+  title   = {\paket*{etoolbox}},
+  author  = {Philipp Lehman},
+  date    = {2011-01-21},
+  version = {2.1},
+  url     = {http://mirror.ctan.org/macros/latex/contrib/etoolbox}
+}
+@package{pkg:pgfopts,
+  title   = {\paket*{pgfopts}},
+  author  = {Joseph Wright},
+  date    = {2011-06-02},
+  version = {2.1},
+  url     = {http://mirror.ctan.org/macros/latex/contrib/pgfopts}
+}
+@package{pkg:realbookchords,
+  title   = {\paket*{realbookchords}},
+  author  = {Clemens Niederberger},
+  date    = {2013-04-29},
+  version = {0.1},
+  url     = {https://bitbucket.org/cgnieder/guitarchordschemes/}
+}
+@package{pkg:tikz,
+  author    = {Till Tantau and Mark Wibrow and Christian Feuersänger},
+  title     = {Ti\textit{k}Z/pgf},
+  sorttitle = {TikZ},
+  version   = {2.10},
+  date      = {2010-02-25},
+  url       = {http://sourceforge.net/projects/pgf/},
+  urldate   = {2013-04-18}
+}
+\end{filecontents}
+
+
+\let\verb\lstinline
+
+\newcommand*\Default[1]{%
+  \hfill\llap
+    {%
+      \ifblank{#1}%
+        {(initially~empty)}%
+        {Default:~\code{#1}}%
+    }%
+  \newline
+}
+\usepackage{marginnote,ragged2e}
+\makeatletter
+\providecommand*\sinceversion[1]{%
+  \@bsphack
+  \marginnote{%
+    \footnotesize\sffamily\RaggedRight
+    \textcolor{black!75}{Introduced in version~#1}}%
+  \@esphack}
+\providecommand*\changedversion[1]{%
+  \@bsphack
+  \marginnote{%
+    \footnotesize\sffamily\RaggedRight
+    \textcolor{black!75}{Changed in version~#1}}%
+  \@esphack}
+
+\def\TikZ@logo{Ti\textit{k}Z}
+\renewrobustcmd\TikZ{\TikZ@logo\index{TikZ@\TikZ@logo}}
+\makeatother
+
+\usepackage{ccicons}
+
+\usepackage{acro,accsupp}
+\DeclareAcronym{ctan}{
+  short        = ctan ,
+  long         = the \textsc{Comprehensive \TeX{} Archive Network} ,
+  short-format = \scshape ,
+  pdfstring    = CTAN ,
+  accsupp      = CTAN
+}
+\acsetup{first-style=footnote}
+
+\setchordscheme{
+  finger-format+=\biolinumLF ,
+  name-format+=\libertineLF
+}
+
+\TitlePicture{%
+\chordscheme[
+  name      = Gmi7 ,
+  position  = II ,
+  barre     = {2/2-4/3} ,
+  show-root = {4/4} ,
+  root      = {2/6/2} ,
+  mute      = {1,5}
+]}
+\begin{document}
+
+\section{License and Requirements}
+
+\guitarchordschemes is placed under the terms of the \LaTeX{} Project Public License,
+version 1.3 or later (\url{http://www.latex-project.org/lppl.txt}).
+It has the status “maintained”.
+
+\guitarchordschemes loads the packages \TikZ~\cite{pkg:tikz},
+\paket*{etoolbox}~\cite{pkg:etoolbox} and \paket*{pgfopts}~\cite{pkg:pgfopts}.
+It also loads the \TikZ{} libraries \code{shapes.misc}, \code{arrows} and \code{calc}.
+Depending on an option it also loads \paket*{realbookchords}~\cite{pkg:realbookchords}.
+This package is not yet published on \ac{ctan} and thus not part of any \TeX{}
+distribution. Until it is you can find it at
+\url{https://bitbucket.org/cgnieder/realbookchords/}.
+See section~\ref{sec:realbookchords} for details on this option.
+
+\section{The Command}
+This package more or less provides a single command:
+\begin{beschreibung}
+ \Befehl{chordscheme}[<options>]
+\end{beschreibung}
+This command sets the frame for the chord tablature and can be used to create
+a sheet for manually writing down chord tablatures:
+\begin{beispiel}
+ \chordscheme
+\end{beispiel}
+The \oa{options} argument is where the actual details for a chord happen. These
+are the available ones:
+\begin{beschreibung}
+ \Option{name}{<chordsymbol>}\newline
+   Set the chord symbol. This option accepts a list of entries.
+ \Option{position}{<position>}\newline
+   Set the position for the first of the four frets.
+ \Option{finger}{<fret>/<string>/<finger>}\newline
+   Specify the finger positions for a chord. This option accepts a list of entries.
+ \Option{root}{<fret>/<string>/<finger>}\newline
+   The same as finger but uses a square instead of a circle to indicate that
+   this finger is playing the root of the chord. This option accepts a list of
+   entries.
+ \Option{show-root}{<fret>/<string>}\newline
+   Specify positions of the root that are \emph{not} part of the actual chord
+   but are somewhere in the vicinity of it on the guitar neck. This option
+   accepts a list of entries.
+ \Option{barre}{<fret>/<string range>/<finger>}\newline
+   Specify a barr\'e position for a chord. The \code{<string range>} part must
+   contain a two string numbers separated with a dash. This option accepts a list
+   of entries.
+ \Option{ring}{<string>}\newline
+   Specify open strings. This option accepts a list of entries.
+ \Option{mute}{<string>}\newline
+   Specify muted/un-played strings This option accepts a list of entries.
+\end{beschreibung}
+
+Let's take a look at a few examples:
+
+\setchordscheme{use-rbc=false}
+\begin{beispiel}
+ \chordscheme[
+   name      = G ,
+   position  = I ,
+   finger    = {2/5/1} ,
+   root      = {3/6/2, 3/1/4} ,
+   ring      = {2,3,4}
+ ]
+\end{beispiel}
+
+Or a more “jazzy” chord:
+\begin{beispiel}
+ \chordscheme[
+   name      = G\textsuperscript{6} ,
+   position  = II ,
+   finger    = {1/4/1, 3/3/4, 2/2/3} ,
+   root      = 2/6/2 ,
+   show-root = 4/4 ,
+   mute      = {1,5}
+ ]
+\end{beispiel}
+
+One with a barr\'e:
+
+\begin{beispiel}
+ \chordscheme[
+   name      = Gmi\textsuperscript{7} ,
+   position  = II ,
+   barre     = 2/2-4/3 ,
+   show-root = 4/4 ,
+   root      = 2/6/2 ,
+   mute      = {1,5}
+ ]
+\end{beispiel}
+
+\section{Options}
+There are quite a number of options determining the layout of the tablatures.
+They can either be set as package options or via the setup command:
+\begin{beschreibung}
+ \Befehl{setchordscheme}{<options>}
+\end{beschreibung}
+
+Below every option and its corresponding default setting is described.
+\begin{beschreibung}
+ \Option{x-unit}{<dim>}\Default{.8cm}
+   The basic $x$ unit for the \TikZ{} picture the chord scheme is set in.
+ \Option{y-unit}{<dim>}\Default{.8cm}
+   The basic $y$ unit for the \TikZ{} picture the chord scheme is set in.
+ \Option{finger-format}{<TeX code>}\Default{\cmd*{sffamily}\cmd*{small}}
+   The format the numbers for the fingers are typeset with.
+ \Option{finger-format+}{<TeX code>}\Default{}
+   Code to be appended to \key{finger-format}.
+ \Option{position-format}{<TeX code>}\Default{\cmd*{sffamily}}
+   The format the number for the position is typeset with.
+ \Option{position-format+}{<TeX code>}\Default{}
+   Code to be appended to \key{position-format}.
+ \Option{name-format}{<TeX code>}\Default{\cmd*{large}}
+   The format the chord name/symbol is typeset with.
+ \Option{name-format+}{<TeX code>}\Default{}
+   Code to be appended to \key{name-format}.
+ \Option{string-name-format}{<TeX code>}\Default{\cmd*{sffamily}\cmd*{small}}
+   The format the names of the strings are typeset with.
+ \Option{string-name-format+}{<TeX code>}\Default{}
+   Code to be appended to \key{string-name-format}.
+ \Option{line-width}{<dim>}\Default{1pt}
+   The line width used for all lines drawn in the chord scheme.
+ \Option{finger-radius}{<dim>}\Default{.15cm}
+   The radius of the circles that represent the fingers. Also determines the
+   size of the root markers and the barr\'e.
+ \Option{finger-x-offset}{<dim>}\Default{3mm}
+   The $x$ offset of the number with respect to the circle.
+ \Option{finger-y-offset}{<dim>}\Default{3mm}
+   The $y$ offset of the number with respect to the circle.
+ \Option{finger-style}{<tikz style>}\Default{fill}
+   The \TikZ{} style the circles representing the fingers are drawn with.
+   This is equivalent to\linebreak \cmd{tikzset}{finger style/.style=\{<tikz style>\}}.
+ \Option{root-style}{<tikz style>}\Default{fill}
+   The \TikZ{} style the squares representing the roots are drawn with.
+   This is equivalent to\linebreak \cmd{tikzset}{root style/.style=\{<tikz style>\}}.
+ \Option{show-root-style}{<tikz style>}\Default{draw}
+   The \TikZ{} style the squares representing the “ghost roots” are drawn with.
+   This is equivalent to \cmd{tikzset}{show root style/.style=\{<tikz style>\}}.
+ \Option{ringing-style}{<tikz style>}\Default{draw}
+   The \TikZ{} style the circles representing the open string markers are drawn
+   with. This is equivalent to \cmd{tikzset}{ringing style/.style=\{<tikz style>\}}.
+ \Option{muted-style}{<tikz style>}\Default{\{cross out,draw\}}
+   The \TikZ{} style the nodes representing muted strings are drawn with.
+   This is equivalent to \cmd{tikzset}{muted style/.style=\{<tikz style>\}}.
+ \Option{tuning}{<comma list of string names>}\Default{\{E,B,G,D,A,E\}}
+   The tuning.
+ \Option{use-rbc}{\default{true}|false}\Default{false}
+   If set to true the \key{name} will be set in the command \cmd{rbc} from the
+   \paket*{realbookchords}. If this option is not used as a package option
+   then make sure you also load \paket*{realbookchords}~\cite{pkg:realbookchords}.
+   Please be aware that the latter requires \XeLaTeX{} or \LuaLaTeX. See
+   section~\ref{sec:realbookchords} for details.
+\end{beschreibung}
+
+\section{Using \paket*{realbookchords}}\label{sec:realbookchords}
+Setting \cmd{setchordscheme}{use-rbc=true} or using the same as package option
+will set the chord names/symbols in \paket*{realbookchords}' command \cmd{rbc}.
+
+In order to use this option you need to install the \paket*{realbookchords}
+package~\cite{pkg:realbookchords}. I expect it to go to \ac{ctan} eventually but
+until then you can get it at \url{https://bitbucket.org/cgnieder/realbookchords/}.
+The package uses Jochen Pietsch's “New Real Book” font~\cite{web:pietsch:fonts}
+for typesetting the chord symbols which you can get at
+\url{http://notation.jochenpietsch.de/}.
+It is placed under the Creative Commons Attribution-Noncommercial-Share Alike~3.0
+Unported License \ccbyncsaeu.
+
+\paket*{realbookchords} requires that you compile your document with \XeLaTeX{}
+or \LuaLaTeX.
+
+Here is an example of how the chord symbol looks with \paket*{realbookchords}:
+\begin{beispiel}
+ \setchordscheme{use-rbc=true}
+ \chordscheme[
+   name      = Gmi7(\b5) ,
+   position  = II ,
+   finger    = {1/2/1, 2/3/4, 2/4/3} ,
+   show-root = {4/4} ,
+   root      = {2/6/2} ,
+   mute      = {1,5}
+ ]
+\end{beispiel}
+
+\printbibliography
+
+\printindex
+
+\end{document}

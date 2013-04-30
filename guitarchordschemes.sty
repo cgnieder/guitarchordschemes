@@ -23,7 +23,10 @@
 % The Current Maintainer of this work is Clemens Niederberger.
 % --------------------------------------------------------------------------
 % The guitarchordschemes package consists of the files
-%  - guitarchordschemes.sty, README
+%  - guitarchordschemes.sty,
+%  - guitarchordschemes_en.tex,
+%  - guitarchordschemes_en.pdf,
+%  - README
 % --------------------------------------------------------------------------
 % If you have any ideas, questions, suggestions or bugs to report, please
 % feel free to contact me.
@@ -31,8 +34,8 @@
 %
 % package info and requirements:
 \NeedsTeXFormat{LaTeX2e}
-\def\gcs@date{2013/04/29}
-\def\gcs@version{v0.1a}
+\def\gcs@date{2013/04/30}
+\def\gcs@version{v0.2}
 \def\gcs@description{Guitar Chord Tablatures with TikZ (CN)}
 
 \ProvidesPackage{guitarchordschemes}[\gcs@date\space \gcs@version\space \gcs@description]
@@ -68,7 +71,7 @@
 \def\gcs@finger@font{\sffamily\small}
 \def\gcs@position@font{\sffamily}
 \def\gcs@chord@name@font{\large}
-\def\gcs@string@name@format{\small\sffamily}
+\def\gcs@string@name@format{\sffamily\small}
 
 \def\gcs@chord@x@unit{.8cm}
 \def\gcs@chord@y@unit{.8cm}
@@ -76,36 +79,38 @@
 \def\gcs@finger@radius{.15cm}
 \def\gcs@finger@x@offset{3mm}
 \def\gcs@finger@y@offset{3mm}
-\def\gcs@finger@color{black}
-\def\gcs@root@color{black}
-\def\gcs@showroot@color{black}
-\def\gcs@ringing@color{black}
-\def\gcs@muted@color{black}
 
 \pgfkeys{
   guitarchordschemes/.cd ,
-    x-unit/.code             = \def\gcs@chord@x@unit{#1} ,
-    y-unit/.code             = \def\gcs@chord@y@unit{#1} ,
-    finger-format/.code      = \def\gcs@finger@font{#1} ,
-    position-format/.code    = \def\gcs@position@font{#1} ,
-    name-format/.code        = \def\gcs@chord@name@font{#1} ,
-    string-name-format/.code = \def\gcs@string@name@format{#1} ,
-    line-width/.code         = \def\gcs@chord@line@width{#1} ,
-    finger-radius/.code      = \def\gcs@finger@radius{#1} ,
-    finger-x-offset/.code    = \def\gcs@finger@x@offset{#1} ,
-    finger-y-offset/.code    = \def\gcs@finger@y@offset{#1} ,
-    finger-color/.code       =
-      \def\gcs@finger@color{#1}
-      \def\gcs@root@color{#1}
-      \def\gcs@showroot@color{#1} ,
-    root-color/.code         =
-      \def\gcs@root@color{#1}
-      \def\gcs@showroot@color{#1} ,
-    show-root-color/.code    = \def\gcs@showroot@color{#1} ,
-    ringing-color/.code      = \def\gcs@ringing@color{#1} ,
-    muted-color/.code        = \def\gcs@muted@color{#1} ,
-    tuning/.code             = \gcs@chord@tuning{#1} ,
-    use-rbc/.is if           = gcs@rbc
+    x-unit/.code              = \def\gcs@chord@x@unit{#1} ,
+    y-unit/.code              = \def\gcs@chord@y@unit{#1} ,
+    finger-format/.code       = \def\gcs@finger@font{#1} ,
+    finger-format+/.code      =
+      \expandafter\def\expandafter\gcs@finger@font
+      \expandafter{\gcs@finger@font#1} ,
+    position-format/.code     = \def\gcs@position@font{#1} ,
+    position-format+/.code    =
+      \expandafter\def\expandafter\gcs@position@font
+      \expandafter{\gcs@position@font#1} ,
+    name-format/.code         = \def\gcs@chord@name@font{#1} ,
+    name-format+/.code        =
+      \expandafter\def\expandafter\gcs@chord@name@font
+      \expandafter{\gcs@chord@name@font#1} ,
+    string-name-format/.code  = \def\gcs@string@name@format{#1} ,
+    string-name-format+/.code =
+      \expandafter\def\expandafter\gcs@string@name@format
+      \expandafter{\gcs@string@name@format#1} ,
+    line-width/.code          = \def\gcs@chord@line@width{#1} ,
+    finger-radius/.code       = \def\gcs@finger@radius{#1} ,
+    finger-x-offset/.code     = \def\gcs@finger@x@offset{#1} ,
+    finger-y-offset/.code     = \def\gcs@finger@y@offset{#1} ,
+    finger-style/.code        = \tikzset{finger style/.style={#1}} ,
+    root-style/.code          = \tikzset{root style/.style={#1}} ,
+    show-root-style/.code     = \tikzset{show root style/.style={#1}} , ,
+    ringing-style/.code       = \tikzset{ringing style/.style={#1}} ,
+    muted-style/.code         = \tikzset{muted style/.style={#1}} ,
+    tuning/.code              = \gcs@chord@tuning{#1} ,
+    use-rbc/.is if            = gcs@rbc
 }
 
 % the setup command:
@@ -121,9 +126,14 @@
     }%
 }
 
-% default string numbering - needs to be set before options are processed:
+% some defaults - need to be set before options are processed:
 \setchordscheme{
-  tuning= {E,B,G,D,A,E}
+  tuning          = {E,B,G,D,A,E} ,
+  muted-style     = {cross out,draw} ,
+  root-style      = {fill} ,
+  show-root-style = {draw} ,
+  ringing-style   = {draw} ,
+  finger-style    = {fill}
 }
 
 \ProcessPgfOptions*
@@ -135,7 +145,7 @@
 % --------------------------------------------------------------------------
 % settings for the whole scheme:
 \tikzset{
-  finger/.style =
+  gcs/finger/.style =
     {
       xshift = \gcs@finger@x@offset ,
       yshift = \gcs@finger@y@offset ,
@@ -174,9 +184,9 @@
               \ifdefequal\finger@y\finger@number
                 {\def\finger@number{}}{}
               \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
-              \draw[fill,\gcs@finger@color]
+              \draw[finger style]
                 (\finger@fret,\finger@string) circle (\gcs@finger@radius) ;
-              \node[finger] at (\finger@fret,\finger@string) {\finger@number} ;
+              \node[gcs/finger] at (\finger@fret,\finger@string) {\finger@number} ;
             }
         }
     }
@@ -198,8 +208,8 @@
           \expandafter\gcs@barre@getstrings\barre@fromto--\q@stop
           \pgfmathsetmacro\barre@lower@string{(6-\barre@lower@y)*4/5}
           \pgfmathsetmacro\barre@upper@string{(6-\barre@upper@y)*4/5}
-          \draw[\gcs@finger@color,round cap-round cap,line width=2*\gcs@finger@radius]
-            (\barre@fret,\barre@lower@string) node[finger] {\barre@finger}
+          \draw[finger style,round cap-round cap,line width=2*\gcs@finger@radius]
+            (\barre@fret,\barre@lower@string) node[gcs/finger] {\barre@finger}
             ++ (0,\gcs@finger@radius)
             --
             ($(\barre@fret,\barre@upper@string)+(0,-\gcs@finger@radius)$)
@@ -234,9 +244,9 @@
               \ifdefequal\finger@y\finger@number
                 {\def\finger@number{}}{}
               \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
-              \node[fill,\gcs@root@color,minimum size=2*\gcs@finger@radius]
+              \node[minimum size=2*\gcs@finger@radius,root style]
                 at (\finger@fret,\finger@string) {} ;
-              \node[finger] at (\finger@fret,\finger@string) {\finger@number} ;
+              \node[gcs/finger] at (\finger@fret,\finger@string) {\finger@number} ;
             }
         }
     }
@@ -255,7 +265,7 @@
             {\gcs@missing@date@error{show-root}{string}}
             {
               \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
-              \node[draw,\gcs@showroot@color,minimum size=2*\gcs@finger@radius]
+              \node[minimum size=2*\gcs@finger@radius,show root style]
                 at (\finger@fret,\finger@string) {} ;
             }
         }
@@ -267,7 +277,7 @@
   \foreach \muted@string in {#1}
     {
       \pgfmathsetmacro\muted@string@pos{(6-\muted@string)*4/5}
-      \node[\gcs@muted@color,cross out,draw] at (0,\muted@string@pos) {} ;
+      \node[muted style] at (0,\muted@string@pos) {} ;
     }
 }
 
@@ -276,7 +286,7 @@
   \foreach \ringing@string in {#1}
     {
       \pgfmathsetmacro\ringing@string@pos{(6-\ringing@string)*4/5}
-      \draw[\gcs@ringing@color]
+      \draw[ringing style]
         (0,\ringing@string@pos) circle (\gcs@finger@radius) ;
     }
 }
@@ -326,29 +336,25 @@
 % --------------------------------------------------------------------------
 % the symbols for use outside of a scheme:
 \newrobustcmd*\fingersymbol{%
-  \tikz\draw[fill,\gcs@finger@color] (0,0) circle (\gcs@finger@radius);}
+  \tikz\draw[finger style] (0,0) circle (\gcs@finger@radius);}
 
 \newrobustcmd*\rootsymbol{%
-  \tikz\node[fill,\gcs@root@color,minimum size=2*\gcs@finger@radius] at (0,0) {} ;}
+  \tikz\node[root style,minimum size=2*\gcs@finger@radius] at (0,0) {} ;}
 
 \newrobustcmd*\showrootsymbol{%
   \tikz\node[
-    draw,
-    \gcs@showroot@color,
+    show root style,
     minimum size=2*\gcs@finger@radius,
     line width=\gcs@chord@line@width] at (0,0) {} ;}
 
 \newrobustcmd*\ringingstring{%
   \tikz\draw[
-    draw,
-    \gcs@ringing@color,
+    ringing style,
     line width=\gcs@chord@line@width] (0,0) circle (\gcs@finger@radius);}
 
 \newrobustcmd*\mutedstring{%
   \tikz\node[
-    cross out,
-    draw,
-    \gcs@muted@color,
+    muted style,
     line width=\gcs@chord@line@width] at (0,0) {};}
 
 \endinput
@@ -356,3 +362,6 @@
 % HISTORY
 2013/04/28 v0.1  - first version
 2013/04/29 v0.1a - added error handling and messages
+2013/04/30 v0.2  - it's stupid to set colors explicitly -- better define TikZ
+                   styles for this
+
