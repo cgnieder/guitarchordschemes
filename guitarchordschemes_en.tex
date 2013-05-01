@@ -5,7 +5,7 @@
 % --------------------------------------------------------------------------
 % the GUITARCHORDSCHEMES package
 % 
-%   Guitar Chord Tablatures with TikZ
+%   Guitar Chord and Scale Tablatures with TikZ
 % 
 % --------------------------------------------------------------------------
 % Clemens Niederberger
@@ -38,7 +38,7 @@
 \documentclass[toc=index,toc=bib]{cnpkgdoc}
 \docsetup{
   pkg      = [use-rbc]guitarchordschemes ,
-  subtitle = Guitar Chord Tablatures with \TikZ ,
+  subtitle = Guitar Chord and Scale Tablatures with \TikZ ,
   code-box = {
     backgroundcolor  = gray!7!white ,
     skipbelow        = .6\baselineskip plus .5ex minus .5ex ,
@@ -70,6 +70,7 @@
 \addcmds{
   chordscheme,
   setchordscheme,
+  scales,
   textsuperscript
 }
 
@@ -129,6 +130,13 @@
   url       = {http://sourceforge.net/projects/pgf/},
   urldate   = {2013-04-18}
 }
+@book{leavitt:mmfg:1,
+  author    = {William G. Leavitt},
+  title     = {A Modern Method for Guitar},
+  volume    = {1},
+  publisher = {Berklee Press Publications, Boston},
+  year      = {1966}
+}
 \end{filecontents}
 
 
@@ -183,9 +191,9 @@
 \chordscheme[
   name      = Gmi7 ,
   position  = II ,
-  barre     = {2/2-4/3} ,
+  barre     = {2/2-4:3} ,
   show-root = {4/4} ,
-  root      = {2/6/2} ,
+  root      = {2/6:2} ,
   mute      = {1,5}
 ]}
 \begin{document}
@@ -205,37 +213,46 @@ distribution. Until it is you can find it at
 \url{https://bitbucket.org/cgnieder/realbookchords/}.
 See section~\ref{sec:realbookchords} for details on this option.
 
-\section{The Command}
+\section{The Commands}
 This package more or less provides a single command:
 \begin{beschreibung}
  \Befehl{chordscheme}[<options>]
+ \Befehl{scales}[<option>]
 \end{beschreibung}
-This command sets the frame for the chord tablature and can be used to create
-a sheet for manually writing down chord tablatures:
+These commands set the frame for the chord and scale tablatures and can be used
+to create sheets for manually writing down tablatures:
 \begin{beispiel}
  \chordscheme
 \end{beispiel}
+
+Similarly \cmd{scales} creates a frame with two more frets:
+\begin{beispiel}[below]
+ \scales
+\end{beispiel}
+
+\subsection{Options for \cmd*{chordscheme}}
 The \oa{options} argument is where the actual details for a chord happen. These
-are the available ones:
+are the available ones for \cmd{chordscheme}:
 \begin{beschreibung}
  \Option{name}{<chordsymbol>}\newline
    Set the chord symbol. This option accepts a list of entries.
  \Option{position}{<position>}\newline
    Set the position for the first of the four frets.
- \Option{finger}{<fret>/<string>/<finger>}\newline
+ \Option{finger}{<fret>/<string>:<label>}\newline
    Specify the finger positions for a chord. This option accepts a list of entries.
- \Option{root}{<fret>/<string>/<finger>}\newline
+   The \code{:<label>} is optional.
+ \Option{root}{<fret>/<string>:<label>}\newline
    The same as finger but uses a square instead of a circle to indicate that
    this finger is playing the root of the chord. This option accepts a list of
-   entries.
+   entries. The \code{:<label>} is optional.
  \Option{show-root}{<fret>/<string>}\newline
    Specify positions of the root that are \emph{not} part of the actual chord
    but are somewhere in the vicinity of it on the guitar neck. This option
    accepts a list of entries.
- \Option{barre}{<fret>/<string range>/<finger>}\newline
+ \Option{barre}{<fret>/<string range>:<label>}\newline
    Specify a barr\'e position for a chord. The \code{<string range>} part must
    contain a two string numbers separated with a dash. This option accepts a list
-   of entries.
+   of entries. The \code{:<label>} is optional.
  \Option{ring}{<string>}\newline
    Specify open strings. This option accepts a list of entries.
  \Option{mute}{<string>}\newline
@@ -249,8 +266,8 @@ Let's take a look at a few examples:
  \chordscheme[
    name      = G ,
    position  = I ,
-   finger    = {2/5/1} ,
-   root      = {3/6/2, 3/1/4} ,
+   finger    = {2/5:1} ,
+   root      = {3/6:2, 3/1:4} ,
    ring      = {2,3,4}
  ]
 \end{beispiel}
@@ -260,8 +277,8 @@ Or a more “jazzy” chord:
  \chordscheme[
    name      = G\textsuperscript{6} ,
    position  = II ,
-   finger    = {1/4/1, 3/3/4, 2/2/3} ,
-   root      = 2/6/2 ,
+   finger    = {1/4:1, 3/3:4, 2/2:3} ,
+   root      = 2/6:2 ,
    show-root = 4/4 ,
    mute      = {1,5}
  ]
@@ -273,10 +290,61 @@ One with a barr\'e:
  \chordscheme[
    name      = Gmi\textsuperscript{7} ,
    position  = II ,
-   barre     = 2/2-4/3 ,
+   barre     = 2/2-4:3 ,
    show-root = 4/4 ,
-   root      = 2/6/2 ,
+   root      = 2/6:2 ,
    mute      = {1,5}
+ ]
+\end{beispiel}
+
+\subsection{Options for \cmd*{scales}}
+The \oa{options} argument for \cmd{scales} are similar to the ones for
+\cmd{chordscheme}:
+\begin{beschreibung}
+ \Option{name}{<title>}\newline
+   Set a title for the scale.
+ \Option{position}{<position>}\newline
+   Set the position for the first of the six frets.
+ \Option{finger}{<fret>/<string>:<label>}\newline
+   Specify the finger positions for the scale. This option accepts a list of entries.
+   The \code{:<label>} is optional.
+ \Option{root}{<fret>/<string>:<label>}\newline
+   The same as finger but uses a square instead of a circle to indicate that
+   this finger is playing the root of the scale. This option accepts a list of
+   entries. The \code{:<label>} is optional.
+ \Option{fingering}{type 1|type 1A|type 2|type 3|type 4}\newline
+   Set a whole predefined fingering. The types correspond to ones taught
+   in \citeauthor{leavitt:mmfg:1}'s \citetitle{leavitt:mmfg:1}~\cite{leavitt:mmfg:1}.
+   This option assumes a ionic scale a places the roots correspondingly.
+ \Option{fingering*}{type 1|type 1A|type 2|type 3|type 4}\newline
+   The same as \key{fingering} but not scale is assumed and no roots are
+   indicated.
+  \Option{fingering?}{type 1|type 1A|type 2|type 3|type 4}\newline
+   The same as \key{fingering*} but also no labels for the fingers are given.
+\end{beschreibung}
+
+Let's see an example:
+\begin{beispiel}[below]
+ \scales[
+   name      = F-major (Fingering Type~1A) ,
+   position  = I ,
+   fingering = type 1A
+ ]
+\end{beispiel}
+
+An example for \key{fingering*}:
+\begin{beispiel}[below]
+ \scales[
+   name       = Fingering Type~3 ,
+   fingering* = type 3
+ ]
+\end{beispiel}
+
+Last an example for \key{fingering?}:
+\begin{beispiel}[below]
+ \scales[
+   name       = Fingering Type~2 ,
+   fingering? = type 2
  ]
 \end{beispiel}
 
@@ -365,9 +433,9 @@ Here is an example of how the chord symbol looks with \paket*{realbookchords}:
  \chordscheme[
    name      = Gmi7(\b5) ,
    position  = II ,
-   finger    = {1/2/1, 2/3/4, 2/4/3} ,
+   finger    = {1/2:1, 2/3:4, 2/4:3} ,
    show-root = {4/4} ,
-   root      = {2/6/2} ,
+   root      = {2/6:2} ,
    mute      = {1,5}
  ]
 \end{beispiel}
