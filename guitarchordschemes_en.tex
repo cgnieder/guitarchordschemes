@@ -379,13 +379,15 @@ Below every option and its corresponding default setting is described.
    Code to be appended to \key{string-name-format}.
  \Option{line-width}{<dim>}\Default{1pt}
    The line width used for all lines drawn in the chord scheme.
- \Option{finger-radius}{<dim>}\Default{.15cm}
-   The radius of the circles that represent the fingers. Also determines the
-   size of the root markers and the barr\'e.
- \Option{finger-x-offset}{<dim>}\Default{3mm}
-   The $x$ offset of the number with respect to the circle.
- \Option{finger-y-offset}{<dim>}\Default{3mm}
-   The $y$ offset of the number with respect to the circle.
+ \Option{finger-radius}{<dim>}\Default{.1875}
+   The radius of the circles that represent the fingers in multiples of
+   \key{x-unit}. Also determines the size of the root markers and the barr\'e.
+ \Option{finger-x-offset}{<dim>}\Default{.375}
+   The $x$ offset of the number with respect to the circle in multiples of
+   \key{x-unit}.
+ \Option{finger-y-offset}{<dim>}\Default{.375}
+   The $y$ offset of the number with respect to the circle in multiples of
+   \key{y-unit}.
  \Option{finger-style}{<tikz style>}\Default{fill}
    The \TikZ{} style the circles representing the fingers are drawn with.
    This is equivalent to\linebreak \cmd{tikzset}{finger style/.style=\{<tikz style>\}}.

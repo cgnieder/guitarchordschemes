@@ -35,7 +35,7 @@
 % package info and requirements:
 \NeedsTeXFormat{LaTeX2e}
 \def\gcs@date{2013/05/01}
-\def\gcs@version{v0.3}
+\def\gcs@version{v0.3a}
 \def\gcs@description{Guitar Chord and Scale Tablatures with TikZ (CN)}
 
 \ProvidesPackage{guitarchordschemes}[\gcs@date\space \gcs@version\space \gcs@description]
@@ -78,9 +78,9 @@
 \def\gcs@x@unit{.8cm}
 \def\gcs@y@unit{.8cm}
 \def\gcs@line@width{1pt}
-\def\gcs@finger@radius{.15cm}
-\def\gcs@finger@x@offset{3mm}
-\def\gcs@finger@y@offset{3mm}
+\def\gcs@finger@radius{.1875}
+\def\gcs@finger@x@offset{.375}
+\def\gcs@finger@y@offset{.275}
 
 \pgfkeys{
   guitarchordschemes/.cd ,
@@ -149,8 +149,8 @@
 \tikzset{
   gcs/finger/.style =
     {
-      xshift = \gcs@finger@x@offset ,
-      yshift = \gcs@finger@y@offset ,
+      xshift = \gcs@finger@x@offset*\gcs@x@unit ,
+      yshift = \gcs@finger@y@offset*\gcs@y@unit ,
       font   = \gcs@finger@font
     }
 }
@@ -338,7 +338,7 @@
             {
               \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
               \draw[finger style]
-                (\finger@fret,\finger@string) circle (\gcs@finger@radius) ;
+                (\finger@fret,\finger@string) circle (\gcs@finger@radius*\gcs@x@unit) ;
               \node[gcs/finger] at (\finger@fret,\finger@string) {\finger@number} ;
             }
         }
@@ -367,11 +367,11 @@
           \expandafter\gcs@barre@getstrings\barre@fromto--\q@stop
           \pgfmathsetmacro\barre@lower@string{(6-\barre@lower@y)*4/5}
           \pgfmathsetmacro\barre@upper@string{(6-\barre@upper@y)*4/5}
-          \draw[finger style,round cap-round cap,line width=2*\gcs@finger@radius]
+          \draw[finger style,round cap-round cap,line width=2*\gcs@finger@radius*\gcs@x@unit]
             (\barre@fret,\barre@lower@string) node[gcs/finger] {\barre@finger}
-            ++ (0,\gcs@finger@radius)
+            ++ (0,\gcs@finger@radius*\gcs@x@unit)
             --
-            ($(\barre@fret,\barre@upper@string)+(0,-\gcs@finger@radius)$)
+            ($(\barre@fret,\barre@upper@string)+(0,-\gcs@finger@radius*\gcs@x@unit)$)
           ;
         }
     }
@@ -408,7 +408,7 @@
             {\gcs@missing@date@error{root}{string}}
             {
               \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
-              \node[minimum size=2*\gcs@finger@radius,root style]
+              \node[minimum size=2*\gcs@finger@radius*\gcs@x@unit,root style]
                 at (\finger@fret,\finger@string) {} ;
               \node[gcs/finger] at (\finger@fret,\finger@string) {\finger@number} ;
             }
@@ -431,7 +431,7 @@
             {\gcs@missing@date@error{show-root}{string}}
             {
               \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
-              \node[minimum size=2*\gcs@finger@radius,show root style]
+              \node[minimum size=2*\gcs@finger@radius*\gcs@x@unit,show root style]
                 at (\finger@fret,\finger@string) {} ;
             }
         }
@@ -453,7 +453,7 @@
     {
       \pgfmathsetmacro\ringing@string@pos{(6-\ringing@string)*4/5}
       \draw[ringing style]
-        (0,\ringing@string@pos) circle (\gcs@finger@radius) ;
+        (0,\ringing@string@pos) circle (\gcs@finger@radius*\gcs@x@unit) ;
     }
 }
 
@@ -548,21 +548,21 @@
 % --------------------------------------------------------------------------
 % the symbols for use outside of a scheme:
 \newrobustcmd*\fingersymbol{%
-  \tikz\draw[finger style] (0,0) circle (\gcs@finger@radius);}
+  \tikz\draw[finger style] (0,0) circle (\gcs@finger@radius*\gcs@x@unit);}
 
 \newrobustcmd*\rootsymbol{%
-  \tikz\node[root style,minimum size=2*\gcs@finger@radius] at (0,0) {} ;}
+  \tikz\node[root style,minimum size=2*\gcs@finger@radius*\gcs@x@unit] at (0,0) {} ;}
 
 \newrobustcmd*\showrootsymbol{%
   \tikz\node[
     show root style,
-    minimum size=2*\gcs@finger@radius,
+    minimum size=2*\gcs@finger@radius*\gcs@x@unit,
     line width=\gcs@line@width] at (0,0) {} ;}
 
 \newrobustcmd*\ringingstring{%
   \tikz\draw[
     ringing style,
-    line width=\gcs@line@width] (0,0) circle (\gcs@finger@radius);}
+    line width=\gcs@line@width] (0,0) circle (\gcs@finger@radius*\gcs@x@unit);}
 
 \newrobustcmd*\mutedstring{%
   \tikz\node[
@@ -577,3 +577,4 @@
 2013/04/30 v0.2  - it's stupid to set colors explicitly -- better define TikZ
                    styles for this
 2013/05/01 v0.3  - added \scales command
+2013/05/01 v0.3a - set all lengths as multiples of the base unit
