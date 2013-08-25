@@ -34,8 +34,8 @@
 %
 % package info and requirements:
 \NeedsTeXFormat{LaTeX2e}
-\def\gcs@date{2013/05/01}
-\def\gcs@version{v0.3a}
+\def\gcs@date{2013/08/25}
+\def\gcs@version{v0.4}
 \def\gcs@description{Guitar Chord and Scale Tablatures with TikZ (CN)}
 
 \ProvidesPackage{guitarchordschemes}[\gcs@date\space \gcs@version\space \gcs@description]
@@ -48,10 +48,10 @@
   \ifstrequal{#1}{Error}
     {%
       \lowercase{\csdef{gcs@#1}}##1##2{%
-        \csuse{Package#1}{gcs}{##1}{##2}}%
+        \csuse{Package#1}{guitarchordschemes}{##1}{##2}}%
     }{%
       \lowercase{\csdef{gcs@#1}}##1{%
-        \csuse{Package#1}{gcs}{##1}}%
+        \csuse{Package#1}{guitarchordschemes}{##1}}%
     }}
 \gcs@create@message{Error}
 \gcs@create@message{Warning}
@@ -171,10 +171,17 @@
 % setting a scale:
 \pgfkeys{
   gcs/scales/.cd ,
-    name/.code      = \gcs@scales@name{#1} ,
-    position/.code  = \def\gcs@scales@position{#1} ,
-    finger/.code    = \gcs@scales@finger{#1} ,
-    root/.code      = \gcs@scales@root{#1} ,
+    name/.code         = \gcs@scales@name{#1} ,
+    position/.code     = \def\gcs@scales@position{#1} ,
+    finger/.code       = \gcs@scales@finger{#1} ,
+    root/.code         = \gcs@scales@root{#1} ,
+    fret number/.code  =
+      \ifnumless{#1}{6}
+        {%
+          \gcs@warning{You cannot use less than 6 frets for a scale!}%
+          \def\gcs@scales@fret@number{6}%
+        }
+        {\def\gcs@scales@fret@number{#1}} ,
     fingering/.is choice ,
     fingering/type 1/.code =
       \gcs@scales@finger{%
@@ -514,29 +521,35 @@
 
 % --------------------------------------------------------------------------
 % the scalescommand:
+\def\gcs@scales@fret@number{6}
+
 \gcs@cs@new\gcs@scales#1{%
-\begingroup
-\begin{tikzpicture}[
-   x=\gcs@x@unit,
-   y=\gcs@y@unit,
-   line width=\gcs@line@width,
-   baseline=(6thstring)
- ]
- \coordinate (6thstring) at (0,0) ;
- \foreach \fret in { 0,1.5,3,4.5,6,7.5,9 }
-   { \draw (\fret,0) -- (\fret,4) ; }
- \foreach \string@pos/\string@number in
-   { 0/6, 0.8/5, 1.6/4, 2.4/3, 3.2/2, 4/1, 0 }
-   {
-     \draw (0,\string@pos) node[left,minimum width=2em]
-       {\gcs@string@name@format\csuse{guitar@string@\string@number}} -- (9,\string@pos) ;
-   }
- \pgfqkeys{/gcs/scales}{#1}%
- \ifdefvoid\gcs@scales@position
-   {}
-   {\node[above,yshift=1ex,font=\gcs@position@font] at (.75,4) {\gcs@scales@position} ;}
-\end{tikzpicture}
-\endgroup
+  \begingroup
+    \begin{tikzpicture}[
+       x=\gcs@x@unit,
+       y=\gcs@y@unit,
+       line width=\gcs@line@width,
+       baseline=(6thstring)
+     ]
+     \pgfqkeys{/gcs/scales}{#1}%
+     \coordinate (6thstring) at (0,0) ;
+     \foreach \fret in { 0,1,...,\gcs@scales@fret@number }
+       { \draw (1.5*\fret,0) -- (1.5*\fret,4) ; }
+     \foreach \string@pos/\string@number in
+       { 0/6, 0.8/5, 1.6/4, 2.4/3, 3.2/2, 4/1, 0 }
+       {
+         \draw (0,\string@pos) node[left,minimum width=2em]
+           {\gcs@string@name@format\csuse{guitar@string@\string@number}}
+           -- (1.5*\gcs@scales@fret@number,\string@pos) ;
+       }
+     \ifdefvoid\gcs@scales@position
+       {}
+       {%
+         \node[above,yshift=1ex,font=\gcs@position@font] at (.75,4)
+           {\gcs@scales@position} ;
+       }
+    \end{tikzpicture}
+  \endgroup
 }
 
 % --------------------------------------------------------------------------
@@ -578,3 +591,4 @@
                    styles for this
 2013/05/01 v0.3  - added \scales command
 2013/05/01 v0.3a - set all lengths as multiples of the base unit
+2013/08/25 v0.4  - added scale option that allows variable number of frets

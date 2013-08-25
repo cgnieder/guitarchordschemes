@@ -1,7 +1,7 @@
 % arara: xelatex
-% arara: biber
-% arara: xelatex
-% arara: xelatex
+% !arara: biber
+% !arara: xelatex
+% !arara: xelatex
 % --------------------------------------------------------------------------
 % the GUITARCHORDSCHEMES package
 % 
@@ -141,31 +141,7 @@
 
 
 \let\verb\lstinline
-
-\newcommand*\Default[1]{%
-  \hfill\llap
-    {%
-      \ifblank{#1}%
-        {(initially~empty)}%
-        {Default:~\code{#1}}%
-    }%
-  \newline
-}
-\usepackage{marginnote,ragged2e}
 \makeatletter
-\providecommand*\sinceversion[1]{%
-  \@bsphack
-  \marginnote{%
-    \footnotesize\sffamily\RaggedRight
-    \textcolor{black!75}{Introduced in version~#1}}%
-  \@esphack}
-\providecommand*\changedversion[1]{%
-  \@bsphack
-  \marginnote{%
-    \footnotesize\sffamily\RaggedRight
-    \textcolor{black!75}{Changed in version~#1}}%
-  \@esphack}
-
 \def\TikZ@logo{Ti\textit{k}Z}
 \renewrobustcmd\TikZ{\TikZ@logo\index{TikZ@\TikZ@logo}}
 \makeatother
@@ -312,10 +288,12 @@ The \oa{options} argument for \cmd{scales} are similar to the ones for
    The same as finger but uses a square instead of a circle to indicate that
    this finger is playing the root of the scale. This option accepts a list of
    entries. The \code{:<label>} is optional.
+ \Option{fret number}{<integer>}\Default{6}
+   The number of frets displayed for a scale.  The minimum number is 6.
  \Option{fingering}{type 1|type 1A|type 2|type 3|type 4}\newline
    Set a whole predefined fingering. The types correspond to ones taught
    in \citeauthor{leavitt:mmfg:1}'s \citetitle{leavitt:mmfg:1}~\cite{leavitt:mmfg:1}.
-   This option assumes a ionic scale a places the roots correspondingly.
+   This option assumes an ionic scale a places the roots correspondingly.
  \Option{fingering*}{type 1|type 1A|type 2|type 3|type 4}\newline
    The same as \key{fingering} but not scale is assumed and no roots are
    indicated.
@@ -437,7 +415,7 @@ package~\cite{pkg:realbookchords}. I expect it to go to \ac{ctan} eventually but
 until then you can get it at \url{https://bitbucket.org/cgnieder/realbookchords/}.
 The package uses Jochen Pietsch's “New Real Book” font~\cite{web:pietsch:fonts}
 for typesetting the chord symbols which you can get at
-\url{http://notation.jochenpietsch.de/}.
+\url{http://notation.jochenpietsch.de/} or from me.  I published it here: \url{http://www.niederberger.com.de/gitarren-akkorde-und-skalen-mit-latex}.
 It is placed under the Creative Commons Attribution-Noncommercial-Share Alike~3.0
 Unported License \ccbyncsaeu.
 
