@@ -8,7 +8,7 @@
 % Web:    https://bitbucket.org/cgnieder/guitarchordschemes/
 % E-Mail: contact@mychemistry.eu
 % --------------------------------------------------------------------------
-% Copyright 2013 Clemens Niederberger
+% Copyright 2013-2014 Clemens Niederberger
 % 
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
@@ -34,29 +34,24 @@
 %
 % package info and requirements:
 \NeedsTeXFormat{LaTeX2e}
-\def\gcs@date{2013/08/25}
-\def\gcs@version{v0.4}
+\def\gcs@date{2014/07/16}
+\def\gcs@version{v0.5}
 \def\gcs@description{Guitar Chord and Scale Tablatures with TikZ (CN)}
 
 \ProvidesPackage{guitarchordschemes}[\gcs@date\space \gcs@version\space \gcs@description]
 
-\RequirePackage{tikz,etoolbox,pgfopts}
+\RequirePackage{tikz,cnltx-base}
 \usetikzlibrary{shapes.misc,arrows,calc}
 % --------------------------------------------------------------------------
 % message handling
-\def\gcs@create@message#1{%
-  \ifstrequal{#1}{Error}
-    {%
-      \lowercase{\csdef{gcs@#1}}##1##2{%
-        \csuse{Package#1}{guitarchordschemes}{##1}{##2}}%
-    }{%
-      \lowercase{\csdef{gcs@#1}}##1{%
-        \csuse{Package#1}{guitarchordschemes}{##1}}%
-    }}
-\gcs@create@message{Error}
-\gcs@create@message{Warning}
-\gcs@create@message{WarningNoLine}
-\gcs@create@message{Info}
+\newcommand*\gcs@error@message{%
+  For details have a look at the `guitarchordschemes' manual.%
+}
+
+\cnltx@create@generic@message{gcs}{guitarchordschemes}{Error}{\gcs@error@message}
+\cnltx@create@generic@message{gcs}{guitarchordschemes}{Warning}{}
+\cnltx@create@generic@message{gcs}{guitarchordschemes}{WarningNoLine}{}
+\cnltx@create@generic@message{gcs}{guitarchordschemes}{Info}{}
 
 \def\gcs@missing@date@error#1#2{%
   \gcs@error
@@ -64,12 +59,25 @@
     {#1: It seems you didn't specify the #2}%
 }
 
-\def\gcs@cs@new{\protected\def}
+\newrobustcmd*\gcs@def[1]{%
+  \ifdef{#1}
+    {%
+      \gcs@error
+        {The macro \string#1\space is already defined}
+        {%
+          The macro \string#1\space is already defined. Please let the package
+          author know%
+        }%
+    }
+    {\protected\def#1}%
+}
+
+\gcs@def\gcs@deprecated@option#1#2{%
+  \gcs@warning{Since version #1 the option `#2' has been dropped}%
+}
 
 % --------------------------------------------------------------------------
 % package options and setup:
-\newbool{gcs@rbc}
-
 \def\gcs@finger@font{\sffamily\small}
 \def\gcs@position@font{\sffamily}
 \def\gcs@name@font{\large}
@@ -98,6 +106,8 @@
     name-format+/.code        =
       \expandafter\def\expandafter\gcs@name@font
       \expandafter{\gcs@name@font#1} ,
+    chord-name-cs/.code       = {\let\gcs@chord@name@command=#1} ,
+    scales-name-cs/.code      = {\let\gcs@scales@name@command=#1} ,
     string-name-format/.code  = \def\gcs@string@name@format{#1} ,
     string-name-format+/.code =
       \expandafter\def\expandafter\gcs@string@name@format
@@ -112,7 +122,7 @@
     ringing-style/.code       = \tikzset{ringing style/.style={#1}} ,
     muted-style/.code         = \tikzset{muted style/.style={#1}} ,
     tuning/.code              = \gcs@chord@tuning{#1} ,
-    use-rbc/.is if            = gcs@rbc
+    use-rbc/.code             = \gcs@deprecated@option{0.5}{use-rbc}
 }
 
 % the setup command:
@@ -139,10 +149,6 @@
 }
 
 \ProcessPgfOptions*
-
-% --------------------------------------------------------------------------
-% are we using `realbookchords'?
-\ifbool{gcs@rbc}{\RequirePackage{realbookchords}}{}
 
 % --------------------------------------------------------------------------
 % settings for the whole scheme:
@@ -332,7 +338,7 @@
 
 % placing fingers:
 %   <fret>/<string>:<finger>
-\gcs@cs@new\gcs@chord@finger#1{%
+\gcs@def\gcs@chord@finger#1{%
   \foreach \gcs@finger@spec in {#1}
     {
       \expandafter\gcs@get@finger@data\gcs@finger@spec::\q@stop
@@ -353,7 +359,7 @@
 }
 \let\gcs@scales@finger\gcs@chord@finger
 
-\gcs@cs@new\gcs@get@finger@data#1/#2:#3:#4\q@stop{%
+\gcs@def\gcs@get@finger@data#1/#2:#3:#4\q@stop{%
   \def\finger@x{#1}%
   \def\finger@y{#2}%
   \def\finger@number{#3}%
@@ -361,7 +367,7 @@
 
 % placing a barre:
 %   <fret>/<string>-<string>:<finger>
-\gcs@cs@new\gcs@chord@barre#1{%
+\gcs@def\gcs@chord@barre#1{%
   \foreach \gcs@barre@spec in {#1}
     {
       \expandafter\gcs@get@barre@data\gcs@barre@spec::\q@stop
@@ -384,13 +390,13 @@
     }
 }
 
-\gcs@cs@new\gcs@get@barre@data#1/#2:#3:#4\q@stop{%
+\gcs@def\gcs@get@barre@data#1/#2:#3:#4\q@stop{%
   \def\barre@x{#1}%
   \def\barre@fromto{#2}%
   \def\barre@finger{#3}%
 }
 
-\gcs@cs@new\gcs@barre@getstrings#1-#2-#3\q@stop{%
+\gcs@def\gcs@barre@getstrings#1-#2-#3\q@stop{%
   \ifx#3-\relax
     \def\barre@lower@y{#1}%
     \def\barre@upper@y{#2}%
@@ -403,7 +409,7 @@
 
 % placing root fingers:
 %   <fret>/<string>:<finger>
-\gcs@cs@new\gcs@chord@root#1{%
+\gcs@def\gcs@chord@root#1{%
   \foreach \gcs@finger@spec in {#1}
     {
       \expandafter\gcs@get@finger@data\gcs@finger@spec::\q@stop
@@ -415,7 +421,7 @@
             {\gcs@missing@date@error{root}{string}}
             {
               \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
-              \node[minimum size=2*\gcs@finger@radius*\gcs@x@unit,root style]
+              \node[minimum size=2*\gcs@finger@radius*\gcs@x@unit,inner sep=0pt,root style]
                 at (\finger@fret,\finger@string) {} ;
               \node[gcs/finger] at (\finger@fret,\finger@string) {\finger@number} ;
             }
@@ -426,7 +432,7 @@
 
 % placing ghost roots:
 %   <fret>/<string>
-\gcs@cs@new\gcs@chord@show@root#1{%
+\gcs@def\gcs@chord@show@root#1{%
   \foreach \gcs@finger@spec in {#1}
     {
       \expandafter\gcs@get@finger@data\gcs@finger@spec::\q@stop
@@ -438,7 +444,7 @@
             {\gcs@missing@date@error{show-root}{string}}
             {
               \pgfmathsetmacro\finger@string{(6-\finger@y)*4/5}
-              \node[minimum size=2*\gcs@finger@radius*\gcs@x@unit,show root style]
+              \node[minimum size=2*\gcs@finger@radius*\gcs@x@unit,inner sep=0pt,show root style]
                 at (\finger@fret,\finger@string) {} ;
             }
         }
@@ -446,7 +452,7 @@
 }
 
 % muted strings:
-\gcs@cs@new\gcs@chord@mute#1{%
+\gcs@def\gcs@chord@mute#1{%
   \foreach \muted@string in {#1}
     {
       \pgfmathsetmacro\muted@string@pos{(6-\muted@string)*4/5}
@@ -455,7 +461,7 @@
 }
 
 % ringing strings:
-\gcs@cs@new\gcs@chord@ring#1{%
+\gcs@def\gcs@chord@ring#1{%
   \foreach \ringing@string in {#1}
     {
       \pgfmathsetmacro\ringing@string@pos{(6-\ringing@string)*4/5}
@@ -465,36 +471,40 @@
 }
 
 % the chord name:
-\gcs@cs@new\gcs@chord@name#1{%
+\gcs@def\gcs@chord@name#1{%
   \node[above,yshift=4ex] at (3,4) {%
-  \foreach \gcs@chord@name@variant in {#1}
-    {%
-      \gcs@name@font
-      \space
-      \ifbool{gcs@rbc}
-        {\expandafter\rbc\expandafter{\gcs@chord@name@variant}}
-        {\gcs@chord@name@variant}%
-      \space
-    }%
+    \gcs@name@font
+    \foreach \gcs@chord@name@variant in {#1}
+      {%
+        \space
+        \expandafter\gcs@chord@name@command
+        \expandafter{\gcs@chord@name@variant}%
+        \space
+      }%
   } ;
 }
 
+\gcs@def\gcs@chord@name@command#1{#1}
+
 % the scale name:
-\gcs@cs@new\gcs@scales@name#1{%
+\gcs@def\gcs@scales@name#1{%
   \node[above,yshift=4ex] at (4.5,4) {%
-  \foreach \gcs@scales@name@variant in {#1}
-    {%
-      \gcs@name@font
-      \space
-      \gcs@scales@name@variant
-      \space
-    }%
+    \gcs@name@font
+    \foreach \gcs@scales@name@variant in {#1}
+      {%
+        \space
+        \expandafter\gcs@scales@name@command
+        \expandafter{\gcs@scales@name@variant}%
+        \space
+      }%
   } ;
 }
+
+\gcs@def\gcs@scales@name@command#1{#1}
 
 % --------------------------------------------------------------------------
 % the chord scheme command:
-\gcs@cs@new\gcs@chordscheme#1{%
+\gcs@def\gcs@chordscheme#1{%
 \begingroup
 \begin{tikzpicture}[
    x=\gcs@x@unit,
@@ -523,7 +533,7 @@
 % the scalescommand:
 \def\gcs@scales@fret@number{6}
 
-\gcs@cs@new\gcs@scales#1{%
+\gcs@def\gcs@scales#1{%
   \begingroup
     \begin{tikzpicture}[
        x=\gcs@x@unit,
@@ -592,3 +602,6 @@
 2013/05/01 v0.3  - added \scales command
 2013/05/01 v0.3a - set all lengths as multiples of the base unit
 2013/08/25 v0.4  - added scale option that allows variable number of frets
+2014/07/16 v0.5  - add `inner sep=0pt' to `root' and `show root' styles
+
+TODO:

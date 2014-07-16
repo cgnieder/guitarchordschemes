@@ -1,15 +1,15 @@
 --------------------------------------------------------------------------
-the GUITARCHORDSCHEMES package v 0.4
+the GUITARCHORDSCHEMES package v 0.5
 
   Guitar Chord and Scale Tablatures with TikZ
 
-2013/08/25
+2014/07/16
 --------------------------------------------------------------------------
 Clemens Niederberger
 Web:    https://bitbucket.org/cgnieder/guitarchordschemes/
 E-Mail: contact@mychemistry.eu
 --------------------------------------------------------------------------
-Copyright 2013 Clemens Niederberger
+Copyright 2013-2014 Clemens Niederberger
 
 This work may be distributed and/or modified under the
 conditions of the LaTeX Project Public License, either version 1.3
