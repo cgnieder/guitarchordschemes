@@ -36,7 +36,8 @@
 % feel free to contact me.
 % --------------------------------------------------------------------------
 \documentclass[load-preamble+]{cnltx-doc}
-\usepackage{guitarchordschemes,chordnames}
+\usepackage{guitarchordschemes}
+\usepackage[chordnames]{leadsheets}
 
 \setcnltx{
   package = guitarchordschemes ,
@@ -94,7 +95,7 @@
 \setchordscheme{
   finger-format+ = \biolinumLF ,
   name-format+   = \libertineLF ,
-  chord-name-cs  = \chord
+  chord-name-cs  = \chordname
 }
 
 \newcommand*\TikZ{Ti\textit{k}Z}
@@ -139,6 +140,10 @@ Similarly \cs{scales} creates a frame with two more frets:
 The \meta{options} argument is where the actual details for a chord
 happen. These are the available ones for \cs{chordscheme}:
 \begin{options}
+  \keyval{fret-number}{number}\Default{4}
+    \sinceversion{0.6}The number of frets that are drawn.  This number must be
+    at least 4.  The option should be set as first option since it influences
+    other options.
   \keyval{name}{chordsymbol}
     Set the chord symbol. This option accepts a comma separated list of
     entries.
@@ -211,6 +216,10 @@ One with a barr\'e:
 The \meta{options} argument for \cs{scales} are similar to the ones for
 \cs{chordscheme}:
 \begin{options}
+  \keyval{fret-number}{number}\Default{6}
+    \sinceversion{0.6}The number of frets that are drawn.  This number must be
+    at least 6.  The option should be set as first option since it influences
+    other options.
   \keyval{name}{title}
     Set a title for the scale.
   \keyval{position}{position}
@@ -311,6 +320,12 @@ Below every option and its corresponding default setting is described.
     The format the names of the strings are typeset with.
   \keyval{string-name-format+}{\TeX{} code}\Default
     Code to be appended to \option{string-name-format}.
+  \keyval{chord-frets}{number}\Default{4}
+    \sinceversion{0.6}The default number of frets of a chord scheme.
+    \meta{number} must be at least 4. 
+  \keyval{scales-frets}{number}\Default{6}
+    \sinceversion{0.6}The default number of frets of a scales scheme.
+    \meta{number} must be at least 6.
   \keyval{line-width}{dim}\Default{1pt}
     The line width used for all lines drawn in the chord scheme.
   \keyval{finger-radius}{num}\Default{.1875}
