@@ -8,7 +8,7 @@
 % Web:    https://bitbucket.org/cgnieder/guitarchordschemes/
 % E-Mail: contact@mychemistry.eu
 % --------------------------------------------------------------------------
-% Copyright 2013-2014 Clemens Niederberger
+% Copyright 2013-2016 Clemens Niederberger
 % 
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
@@ -34,8 +34,8 @@
 %
 % package info and requirements:
 \NeedsTeXFormat{LaTeX2e}
-\def\gcs@date{2014/09/15}
-\def\gcs@version{v0.6}
+\def\gcs@date{2016/08/16}
+\def\gcs@version{v0.7}
 \def\gcs@description{Guitar Chord and Scale Tablatures with TikZ (CN)}
 
 \ProvidesPackage{guitarchordschemes}[\gcs@date\space \gcs@version\space \gcs@description]
@@ -53,7 +53,7 @@
 \cnltx@create@generic@message{gcs}{guitarchordschemes}{WarningNoLine}{}
 \cnltx@create@generic@message{gcs}{guitarchordschemes}{Info}{}
 
-\def\gcs@missing@date@error#1#2{%
+\newcommand*\gcs@missing@date@error[2]{%
   \gcs@error
     {#1: empty #2}
     {#1: It seems you didn't specify the #2}%
@@ -72,7 +72,7 @@
     {\protected\def#1}%
 }
 
-\gcs@def\gcs@deprecated@option#1#2{%
+\newrobustcmd*\gcs@deprecated@option[2]{%
   \gcs@warning{Since version #1 the option `#2' has been dropped}%
 }
 
@@ -82,6 +82,7 @@
 \newcommand*\gcs@position@font{\sffamily}
 \newcommand*\gcs@name@font{\large}
 \newcommand*\gcs@string@name@format{\sffamily\small}
+\newcommand*\gcs@name@distance{.5em}
 
 \newcommand*\gcs@x@unit{.8cm}
 \newcommand*\gcs@y@unit{.8cm}
@@ -89,14 +90,58 @@
 \newcommand*\gcs@finger@radius{.1875}
 \newcommand*\gcs@finger@x@offset{.375}
 \newcommand*\gcs@finger@y@offset{.275}
+\newcommand*\gcs@angle{0}
+
+\newcommand*\gcs@string@number{6}
+\newcommand*\gcs@setstringnumber[1]{%
+  \ifnumless{#1}{1}
+    {%
+      \gcs@warning{You can't use less than one string. Setting string number
+        to 1}%
+      \def\gcs@string@number{1}%
+    }
+    {%
+      \ifnumgreater{#1}{7}
+        {%
+          \gcs@warning{You can't use more than seven
+            strings. Setting string number to 6}%
+          \def\gcs@string@number{6}%
+        }
+        {\def\gcs@string@number{#1}}%
+    }%
+}
+
+\newbool{gcs@switch@name}
 
 \newcommand*\gcs@chordscheme@fret@number{4}
 \newcommand*\gcs@scales@fret@number{6}
+
+\newrobustcmd*\gcs@chord@tuning[1]{%
+  \foreach \string@name [count=\x] in {#1}
+    {\csxdef{guitar@string@\x}{\expandonce\string@name}}%
+}
+
+\newbool{gcs@restrict@boundingbox}
+\newcommand*\gcs@restrictboundingbox[1]{
+  \ifbool{gcs@restrict@boundingbox}
+    {
+      \ifnumequal{\gcs@string@number}{1}
+        {\useasboundingbox (0,-.4) --++ (1.5*\csname gcs@#1@fret@number\endcsname,.8) ; }
+        {
+          \useasboundingbox
+            (bass)
+            rectangle
+            (1.5*\csname gcs@#1@fret@number\endcsname,{.8*(\gcs@string@number-1)}) ;
+        }
+    }{}
+}
 
 \pgfkeys{
   guitarchordschemes/.cd ,
     x-unit/.code              = \def\gcs@x@unit{#1} ,
     y-unit/.code              = \def\gcs@y@unit{#1} ,
+    rotate/.code              = \def\gcs@angle{#1} ,
+    strings/.code             = \gcs@setstringnumber{#1} ,
     finger-format/.code       = \def\gcs@finger@font{#1} ,
     finger-format+/.code      =
       \expandafter\def\expandafter\gcs@finger@font
@@ -109,6 +154,8 @@
     name-format+/.code        =
       \expandafter\def\expandafter\gcs@name@font
       \expandafter{\gcs@name@font#1} ,
+    name-distance/.code       = \def\gcs@name@distance{#1} ,
+    name-below/.is if         = gcs@switch@name ,
     chord-name-cs/.code       = {\let\gcs@chord@name@command=#1} ,
     scales-name-cs/.code      = {\let\gcs@scales@name@command=#1} ,
     string-name-format/.code  = \def\gcs@string@name@format{#1} ,
@@ -139,23 +186,14 @@
     ringing-style/.code       = \tikzset{ringing style/.style={#1}} ,
     muted-style/.code         = \tikzset{muted style/.style={#1}} ,
     tuning/.code              = \gcs@chord@tuning{#1} ,
-    use-rbc/.code             = \gcs@deprecated@option{0.5}{use-rbc}
+    use-rbc/.code             = \gcs@deprecated@option{0.5}{use-rbc} ,
+    restrict-bounding-box/.is if = gcs@restrict@boundingbox
 }
 
 % the setup command:
 \newrobustcmd*\setchordscheme[1]{\pgfqkeys{/guitarchordschemes}{#1}}
 
-\newcounter{gcs@string@number}
-\newrobustcmd*\gcs@chord@tuning[1]{%
-  \setcounter{gcs@string@number}{0}%
-  \foreach \string@name in {#1}
-    {%
-      \stepcounter{gcs@string@number}%
-      \csxdef{guitar@string@\arabic{gcs@string@number}}{\expandonce\string@name}%
-    }%
-}
-
-% some defaults - need to be set before options are processed:
+% some defaults -- need to be set before options are processed:
 \setchordscheme{
   tuning          = {E,B,G,D,A,E} ,
   muted-style     = {cross out,draw} ,
@@ -181,7 +219,7 @@
 % setting a chord scheme:
 \pgfkeys{
   gcs/chord/.cd ,
-    name/.code      = \gcs@chord@name{#1} ,
+    name/.code      = \gdef\gcs@chord@name{#1} ,
     position/.code  = \def\gcs@chord@position{#1} ,
     finger/.code    = \gcs@chord@finger{#1} ,
     root/.code      = \gcs@chord@root{#1} ,
@@ -198,10 +236,34 @@
         {\def\gcs@chordscheme@fret@number{#1}}
 }
 
+\newrobustcmd*\setfingering[3]{%
+  \pgfkeys{
+    gcs/scales/.cd ,
+    fingering/#1/.code =
+      \gcs@scales@finger{#2}
+      \ifblank{#3}{}{\gcs@scales@root{#3}} ,
+    fingering*/#1/.code =
+      \def\gcs@tmp{}%
+      \foreach \gcs@str in {#2,#3}
+        { \xappto\gcs@tmp{\gcs@str,} }%
+      \edef\gcs@tmp{\expandafter\cs@remove@comma\gcs@tmp\q@stop}%
+      \expandafter\gcs@scales@finger\expandafter{\gcs@tmp} ,
+    fingering?/#1/.code =
+      \def\gcs@tmp{}%
+      \foreach \gcs@str in {#2,#3}
+        { \xappto\gcs@tmp{\expandafter\cs@remove@finger\gcs@str::\q@stop,} }%
+      \edef\gcs@tmp{\expandafter\cs@remove@comma\gcs@tmp\q@stop}%
+      \expandafter\gcs@scales@finger\expandafter{\gcs@tmp}%
+  }%
+}
+
+\def\cs@remove@finger#1:#2:#3\q@stop{#1}
+\def\cs@remove@comma#1,\q@stop{#1}
+
 % setting a scale:
 \pgfkeys{
   gcs/scales/.cd ,
-    name/.code         = \gcs@scales@name{#1} ,
+    name/.code         = \gdef\gcs@scales@name{#1} ,
     position/.code     = \def\gcs@scales@position{#1} ,
     finger/.code       = \gcs@scales@finger{#1} ,
     root/.code         = \gcs@scales@root{#1} ,
@@ -213,149 +275,54 @@
         }
         {\def\gcs@scales@fret@number{#1}} ,
     fingering/.is choice ,
-    fingering/type 1/.code =
-      \gcs@scales@finger{%
-        1/1:1s,        3/1:2,        5/1:4,
-                       3/2:2,        5/2:4,
-                2/3:1,        4/3:3,
-                2/4:1, 3/4:2,        5/4:4,
-                2/5:1,               5/5:4,
-        1/6:1s,        3/6:2,        5/6:4
-      }%
-      \gcs@scales@root{5/3:4, 3/5:2} ,
-    fingering/type 1A/.code =
-      \gcs@scales@finger{%
-                       3/1:2,        5/1:4,
-                       3/2:2,        5/2:4,
-                2/3:1, 3/3:2,        5/3:4,
-                2/4:1,               5/4:4,
-        1/5:1s,        3/5:2,        5/5:4,
-                       3/6:2,        5/6:4
-      }%
-      \gcs@scales@root{1/1:1s, 3/4:2, 1/6:1s} ,
-    fingering/type 2/.code =
-      \gcs@scales@finger{%
-                2/1:1,               5/1:4,
-                       3/2:2,        5/2:4,
-                2/3:1,        4/3:3, 5/3:4,
-                2/4:1,        4/4:3,
-                2/5:1, 3/5:2,        5/5:4,
-                2/6:1,               5/6:4
-      }%
-      \gcs@scales@root{3/1:2, 5/4:4, 3/6:2},
-    fingering/type 3/.code =
-      \gcs@scales@finger{%
-                2/1:1, 3/1:2,        5/1:4,
-                2/2:1,               5/2:4,
-                2/3:1,        4/3:3,
-                2/4:1,        4/4:3, 5/4:4,
-                2/5:1,        4/5:3,
-                2/6:1, 3/6:2,        5/6:4
-      }%
-      \gcs@scales@root{3/2:2, 5/5:4},
-    fingering/type 4/.code =
-      \gcs@scales@finger{%
-                2/1:1,        4/1:3,
-                2/2:1, 3/2:2,        5/2:4,
-                              4/3:3,
-                2/4:1,        4/4:3,        6/4:4s,
-                2/5:1,        4/5:3, 5/5:4,
-                2/6:1,        4/6:3
-      }%
-      \gcs@scales@root{5/1:4, 2/3:1, 5/6:4},
     fingering*/.is choice ,
-    fingering*/type 1/.code =
-      \gcs@scales@finger{%
-        1/1:1s,        3/1:2,        5/1:4,
-                       3/2:2,        5/2:4,
-                2/3:1,        4/3:3, 5/3:4,
-                2/4:1, 3/4:2,        5/4:4,
-                2/5:1, 3/5:2,        5/5:4,
-        1/6:1s,        3/6:2,        5/6:4
-      } ,
-    fingering*/type 1A/.code =
-      \gcs@scales@finger{%
-        1/1:1s,        3/1:2,        5/1:4,
-                       3/2:2,        5/2:4,
-                2/3:1, 3/3:2,        5/3:4,
-                2/4:1, 3/4:2,        5/4:4,
-        1/5:1s,        3/5:2,        5/5:4,
-        1/6:1s,        3/6:2,        5/6:4
-      } ,
-    fingering*/type 2/.code =
-      \gcs@scales@finger{%
-                2/1:1, 3/1:2,        5/1:4,
-                       3/2:2,        5/2:4,
-                2/3:1,        4/3:3, 5/3:4,
-                2/4:1,        4/4:3, 5/4:4,
-                2/5:1, 3/5:2,        5/5:4,
-                2/6:1, 3/6:2,        5/6:4
-      } ,
-    fingering*/type 3/.code =
-      \gcs@scales@finger{%
-                2/1:1, 3/1:2,        5/1:4,
-                2/2:1, 3/2:2,        5/2:4,
-                2/3:1,        4/3:3,
-                2/4:1,        4/4:3, 5/4:4,
-                2/5:1,        4/5:3, 5/5:4,
-                2/6:1, 3/6:2,        5/6:4
-      } ,
-    fingering*/type 4/.code =
-      \gcs@scales@finger{%
-                2/1:1,        4/1:3, 5/1:4,
-                2/2:1, 3/2:2,        5/2:4,
-                2/3:1,        4/3:3,
-                2/4:1,        4/4:3,        6/4:4s,
-                2/5:1,        4/5:3, 5/5:4,
-                2/6:1,        4/6:3, 5/6:4
-      },
-    fingering?/.is choice ,
-    fingering?/type 1/.code =
-      \gcs@scales@finger{%
-        1/1,      3/1,      5/1,
-                  3/2,      5/2,
-             2/3,      4/3, 5/3,
-             2/4, 3/4,      5/4,
-             2/5, 3/5,      5/5,
-        1/6,      3/6,      5/6
-      } ,
-    fingering?/type 1A/.code =
-      \gcs@scales@finger{%
-        1/1,      3/1,      5/1,
-                  3/2,      5/2,
-             2/3, 3/3,      5/3,
-             2/4, 3/4,      5/4,
-        1/5,      3/5,      5/5,
-        1/6,      3/6,      5/6
-      } ,
-    fingering?/type 2/.code =
-      \gcs@scales@finger{%
-             2/1, 3/1,      5/1,
-                  3/2,      5/2,
-             2/3,      4/3, 5/3,
-             2/4,      4/4, 5/4,
-             2/5, 3/5,      5/5,
-             2/6, 3/6,      5/6
-      } ,
-    fingering?/type 3/.code =
-      \gcs@scales@finger{%
-             2/1, 3/1,      5/1,
-             2/2, 3/2,      5/2,
-             2/3,      4/3,
-             2/4,      4/4, 5/4,
-             2/5,      4/5, 5/5,
-             2/6, 3/6,      5/6
-      } ,
-    fingering?/type 4/.code =
-      \gcs@scales@finger{%
-             2/1,      4/1, 5/1,
-             2/2, 3/2,      5/2,
-             2/3,      4/3,
-             2/4,      4/4,      6/4,
-             2/5,      4/5, 5/5,
-             2/6,      4/6, 5/6
-      }
+    fingering?/.is choice
 }
+
+\setfingering{type 1}{
+  1/1:1s,        3/1:2,        5/1:4,
+                 3/2:2,        5/2:4,
+          2/3:1,        4/3:3,
+          2/4:1, 3/4:2,        5/4:4,
+          2/5:1,               5/5:4,
+  1/6:1s,        3/6:2,        5/6:4
+}{5/3:4, 3/5:2}
+
+\setfingering{type 1A}{
+                 3/1:2,        5/1:4,
+                 3/2:2,        5/2:4,
+          2/3:1, 3/3:2,        5/3:4,
+          2/4:1,               5/4:4,
+  1/5:1s,        3/5:2,        5/5:4,
+                 3/6:2,        5/6:4
+}{1/1:1s, 3/4:2, 1/6:1s}
+
+\setfingering{type 2}{
+          2/1:1,               5/1:4,
+                 3/2:2,        5/2:4,
+          2/3:1,        4/3:3, 5/3:4,
+          2/4:1,        4/4:3,
+          2/5:1, 3/5:2,        5/5:4,
+          2/6:1,               5/6:4
+}{3/1:2, 5/4:4, 3/6:2}
+
+\setfingering{type 3}{
+          2/1:1, 3/1:2,        5/1:4,
+          2/2:1,               5/2:4,
+          2/3:1,        4/3:3,
+          2/4:1,        4/4:3, 5/4:4,
+          2/5:1,        4/5:3,
+          2/6:1, 3/6:2,        5/6:4
+}{3/2:2, 5/5:4}
+
+\setfingering{type 4}{
+          2/1:1,        4/1:3,
+          2/2:1, 3/2:2,        5/2:4,
+                        4/3:3,
+          2/4:1,        4/4:3,        6/4:4s,
+          2/5:1,        4/5:3, 5/5:4,
+          2/6:1,        4/6:3
+}{5/1:4, 2/3:1, 5/6:4}
 
 % --------------------------------------------------------------------------
 % the internal commands
@@ -373,7 +340,7 @@
           \ifdefvoid\gcs@finger@y
             {\gcs@missing@date@error{finger}{string}}
             {
-              \pgfmathsetmacro\gcs@finger@string{(6-\gcs@finger@y)*4/5}
+              \pgfmathsetmacro\gcs@finger@string{(\gcs@string@number-\gcs@finger@y)*4/5}
               \draw[finger style]
                 (\gcs@finger@fret,\gcs@finger@string)
                 circle
@@ -406,8 +373,8 @@
         {\gcs@missing@date@error{barre}{string range}}
         {
           \expandafter\gcs@barre@getstrings\gcs@barre@fromto--\q@stop
-          \pgfmathsetmacro\gcs@barre@lower@string{(6-\gcs@barre@lower@y)*4/5}
-          \pgfmathsetmacro\gcs@barre@upper@string{(6-\gcs@barre@upper@y)*4/5}
+          \pgfmathsetmacro\gcs@barre@lower@string{(\gcs@string@number-\gcs@barre@lower@y)*4/5}
+          \pgfmathsetmacro\gcs@barre@upper@string{(\gcs@string@number-\gcs@barre@upper@y)*4/5}
           \draw[finger style,round cap-round cap,line width=2*\gcs@finger@radius*\gcs@x@unit]
             (\gcs@barre@fret,\gcs@barre@lower@string) node[gcs/finger] {\gcs@barre@finger}
             ++ (0,\gcs@finger@radius*\gcs@x@unit)
@@ -448,7 +415,7 @@
           \ifdefvoid\gcs@finger@y
             {\gcs@missing@date@error{root}{string}}
             {
-              \pgfmathsetmacro\gcs@finger@string{(6-\gcs@finger@y)*4/5}
+              \pgfmathsetmacro\gcs@finger@string{(\gcs@string@number-\gcs@finger@y)*4/5}
               \node[minimum size=2*\gcs@finger@radius*\gcs@x@unit,inner sep=0pt,root style]
                 at (\gcs@finger@fret,\gcs@finger@string) {} ;
               \node[gcs/finger]
@@ -473,7 +440,7 @@
           \ifdefvoid\gcs@finger@x
             {\gcs@missing@date@error{show-root}{string}}
             {
-              \pgfmathsetmacro\gcs@finger@string{(6-\gcs@finger@y)*4/5}
+              \pgfmathsetmacro\gcs@finger@string{(\gcs@string@number-\gcs@finger@y)*4/5}
               \node[
                 minimum size=2*\gcs@finger@radius*\gcs@x@unit,
                 inner sep=0pt,
@@ -497,40 +464,44 @@
 \newrobustcmd*\gcs@chord@ring[1]{%
   \foreach \ringing@string in {#1}
     {
-      \pgfmathsetmacro\ringing@string@pos{(6-\ringing@string)*4/5}
+      \pgfmathsetmacro\ringing@string@pos{(\gcs@string@number-\ringing@string)*4/5}
       \draw[ringing style]
         (0,\ringing@string@pos) circle (\gcs@finger@radius*\gcs@x@unit) ;
     }
 }
 
 % the chord name:
-\newrobustcmd*\gcs@chord@name[1]{%
-  \node[above,yshift=4ex] at (.75*\gcs@chordscheme@fret@number,4) {%
-    \gcs@name@font
-    \foreach \gcs@chord@name@variant in {#1}
-      {%
-        \space
-        \expandafter\gcs@chord@name@command
-        \expandafter{\gcs@chord@name@variant}%
-        \space
-      }%
-  } ;
+\newrobustcmd*\gcs@place@chord@name[1]{%
+  \node[
+    label={[text height=1.5ex,text depth=.2ex,font=\gcs@name@font,
+      label distance=\gcs@name@distance]\ifbool{gcs@switch@name}{below}{above}:{%
+      \foreach \gcs@chord@name@variant in {#1}
+        {%
+          % \space
+          \expandafter\gcs@chord@name@command
+          \expandafter{\gcs@chord@name@variant}%
+          % \space
+        }%
+    }}] at
+  (diagram.\ifbool{gcs@switch@name}{south}{north}) {} ;
 }
 
 \newrobustcmd*\gcs@chord@name@command[1]{#1}
 
 % the scale name:
-\newrobustcmd*\gcs@scales@name[1]{%
-  \node[above,yshift=4ex] at (.75*\gcs@scales@fret@number,4) {%
-    \gcs@name@font
-    \foreach \gcs@scales@name@variant in {#1}
-      {%
-        \space
-        \expandafter\gcs@scales@name@command
-        \expandafter{\gcs@scales@name@variant}%
-        \space
-      }%
-  } ;
+\newrobustcmd*\gcs@place@scales@name[1]{%
+  \node[
+    label={[text height=1.5ex,text depth=.2ex,font=\gcs@name@font,
+      label distance=\gcs@name@distance]\ifbool{gcs@switch@name}{below}{above}:{%
+      \foreach \gcs@scales@name@variant in {#1}
+        {%
+          % \space
+          \expandafter\gcs@scales@name@command
+          \expandafter{\gcs@scales@name@variant}%
+          % \space
+        }%
+    }}] at
+  (diagram.\ifbool{gcs@switch@name}{south}{north}) {} ;
 }
 
 \newrobustcmd*\gcs@scales@name@command[1]{#1}
@@ -543,29 +514,43 @@
        x=\gcs@x@unit,
        y=\gcs@y@unit,
        line width=\gcs@line@width,
-       baseline=(6thstring)
+       baseline=(bass)
      ]
-     \coordinate (6thstring) at (0,0) ;
+     \begin{scope}[rotate=\gcs@angle,local bounding box=diagram]
+     \coordinate (bass) at (0,0) ;
+     \gcs@restrictboundingbox{chordscheme}
      \pgfqkeys{/gcs/chord}{#1}%
-     \foreach \fret in {0,1,...,\gcs@chordscheme@fret@number}
-       { \draw (1.5*\fret,0) -- (1.5*\fret,4) ; }
-     \foreach \gcs@string@pos/\gcs@string@number in
-       { 0/6, 0.8/5, 1.6/4, 2.4/3, 3.2/2, 4/1, 0 }
+     \foreach \fretnumber
+       in {0,...,\gcs@chordscheme@fret@number}
+       {
+         \ifnumequal{\gcs@string@number}{1}
+           { \draw (1.5*\fretnumber,-.4) --++ (0,.8) ; }
+           { \draw (1.5*\fretnumber,0) -- ++(0,{.8*(\gcs@string@number-1)}) ; }
+       }
+     \foreach \gcs@string in {1,...,\gcs@string@number}
        {
          \draw
-           (0,\gcs@string@pos)
-           node[left,minimum width=2em]
-             {\gcs@string@name@format\csuse{guitar@string@\gcs@string@number}}
-           --
-           (1.5*\gcs@chordscheme@fret@number,\gcs@string@pos) ;
+           (0,{.8*(\gcs@string@number-\gcs@string)})
+           node[transform shape,
+           label={[text height=1.5ex,text depth=.2ex]left:%
+             \gcs@string@name@format\csuse{guitar@string@\gcs@string}}] {}
+           --++(1.5*\gcs@chordscheme@fret@number,0) ;
        }
      \ifdefvoid\gcs@chord@position
        {}
        {
-         \node[above,yshift=1ex,font=\gcs@position@font]
-           at (.75,4) {\gcs@chord@position} ;
+         \draw
+           (.75,{.8*(\gcs@string@number-1)})
+           node[transform shape,
+           label={[text height=1.5ex,text depth=.2ex,font=\gcs@position@font]%
+             above:\gcs@chord@position}] {} ;
        }
-    \end{tikzpicture}
+     \end{scope}
+     \ifdefvoid\gcs@chord@name
+       {}
+       {\expandafter\gcs@place@chord@name\expandafter{\gcs@chord@name}}
+     \gdef\gcs@chord@name{}
+   \end{tikzpicture}
   \endgroup
 }
 
@@ -577,28 +562,37 @@
        x=\gcs@x@unit,
        y=\gcs@y@unit,
        line width=\gcs@line@width,
-       baseline=(6thstring)
+       baseline=(bass)
      ]
+     \begin{scope}[rotate=\gcs@angle,local bounding box=diagram]
+     \coordinate (bass) at (0,0) ;
+     \gcs@restrictboundingbox{scales}
      \pgfqkeys{/gcs/scales}{#1}%
-     \coordinate (6thstring) at (0,0) ;
      \foreach \fret in { 0,1,...,\gcs@scales@fret@number }
-       { \draw (1.5*\fret,0) -- (1.5*\fret,4) ; }
-     \foreach \gcs@string@pos/\gcs@string@number in
-       { 0/6, 0.8/5, 1.6/4, 2.4/3, 3.2/2, 4/1, 0 }
+       { \draw (1.5*\fret,0) -- (1.5*\fret,{.8*(\gcs@string@number-1)}) ; }
+     \foreach \gcs@string in {1,...,\gcs@string@number}
        {
          \draw
-           (0,\gcs@string@pos)
-           node[left,minimum width=2em]
-             {\gcs@string@name@format\csuse{guitar@string@\gcs@string@number}}
-           --
-           (1.5*\gcs@scales@fret@number,\gcs@string@pos) ;
+           (0,{.8*(\gcs@string@number-\gcs@string)})
+           node[transform shape,
+           label={[text height=1.5ex,text depth=.2ex]%
+             left:\gcs@string@name@format\csuse{guitar@string@\gcs@string}}] {}
+           --++(1.5*\gcs@scales@fret@number,0) ;
        }
      \ifdefvoid\gcs@scales@position
        {}
-       {%
-         \node[above,yshift=1ex,font=\gcs@position@font]
-           at (.75,4) {\gcs@scales@position} ;
+       {
+         \draw
+           (.75,{.8*(\gcs@string@number-1)})
+           node[transform shape,
+           label={[text height=1.5ex,text depth=.2ex,font=\gcs@position@font]%
+             above:\gcs@scales@position}] {} ;
        }
+     \end{scope}
+     \ifdefvoid\gcs@scales@name
+       {}
+       {\expandafter\gcs@place@scales@name\expandafter{\gcs@scales@name}}
+     \gdef\gcs@scales@name{}
     \end{tikzpicture}
   \endgroup
 }
@@ -645,5 +639,10 @@
 2013/08/25 v0.4  - added scale option that allows variable number of frets
 2014/07/16 v0.5  - add `inner sep=0pt' to `root' and `show root' styles
 2014/09/15 v0.6  - new options `chord-frets', `scales-frets' and `fret-number'
-
-TODO:
+2016/08/16 v0.7  - new option `strings=<num>' makes the string number
+                   adaptable which allows creation of ukulele and bass guitar
+                   diagrams
+                 - new option `name-below'
+                 - new option `rotate=<angle>'
+                 - new option `name-distance'
+                 - new command \newfingering{name}{fingers}{roots}

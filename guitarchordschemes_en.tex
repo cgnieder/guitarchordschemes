@@ -12,7 +12,7 @@
 % Web:    https://bitbucket.org/cgnieder/guitarchordschemes/
 % E-Mail: contact@mychemistry.eu
 % --------------------------------------------------------------------------
-% Copyright 2012--2013 Clemens Niederberger
+% Copyright 2013--2016 Clemens Niederberger
 % 
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
@@ -37,7 +37,7 @@
 % --------------------------------------------------------------------------
 \documentclass[load-preamble+]{cnltx-doc}
 \usepackage{guitarchordschemes}
-\usepackage[chordnames]{leadsheets}
+\usepackage[chords]{leadsheets}
 
 \setcnltx{
   package = guitarchordschemes ,
@@ -48,6 +48,7 @@
   add-cmds = {
     chordscheme,
     setchordscheme,
+    setfingering ,
     scales
   } ,
   add-silent-cmds = textsuperscript ,
@@ -118,7 +119,7 @@ also loads the \TikZ{} libraries \code{shapes.misc}, \code{arrows} and
 % section~\ref{sec:realbookchords} for details on this option.
 
 \section{The Commands}
-This package more or less provides a single command:
+This package mainly provides two commands:
 \begin{commands}
   \command{chordscheme}[\oarg{options}]
     Typeset a guitar chord scheme.
@@ -237,9 +238,9 @@ The \meta{options} argument for \cs{scales} are similar to the ones for
     Set a whole predefined fingering.  The types correspond to ones taught
     in \citeauthor{leavitt:mmfg:1}'s
     \citetitle{leavitt:mmfg:1}~\cite{leavitt:mmfg:1}.  This option assumes an
-    ionic scale a places the roots correspondingly.
+    ionic scale and places the roots correspondingly.
   \keychoice{fingering*}{type 1,type 1A,type 2,type 3,type 4}
-    The same as \option{fingering} but not scale is assumed and no roots are
+    The same as \option{fingering} but no scale is assumed and no roots are
     indicated.
   \keychoice{fingering?}{type 1,type 1A,type 2,type 3,type 4}
     The same as \option{fingering*} but also no labels for the fingers are given.
@@ -284,11 +285,34 @@ At last an example for an explicitly set scale:
   ]
 \end{example}
 
+You can add other predefined fingerings or change the existing ones with the
+following command:
+\begin{commands}
+  \command{setfingering}[\marg{name}\marg{fingers}\marg{roots}]
+    \sinceversion{0.7}\marg{name} sets the name as chosen by
+    \option{fingering}, \option{fingering*} or \option{fingering?},
+    \meta{fingers} is passed to the \option{finger} option and \meta{roots}
+    either to the \option{finger} option or the \option{root} option depending
+    if the fingering is called by \option{fingering}, \option{fingering*} or
+    \option{fingering?}.
+\end{commands}
+As an example here is how fingering type 1A has been defined:
+\begin{sourcecode}
+  \setfingering{type 1A}{
+                   3/1:2,        5/1:4,
+                   3/2:2,        5/2:4,
+            2/3:1, 3/3:2,        5/3:4,
+            2/4:1,               5/4:4,
+    1/5:1s,        3/5:2,        5/5:4,
+                   3/6:2,        5/6:4
+  }{1/1:1s, 3/4:2, 1/6:1s}
+\end{sourcecode}
+
 \section{Options}
 There are quite a number of options determining the layout of the tablatures.
 They can either be set as package options or via the setup command:
 \begin{commands}
-  \command{setchordscheme}{options}
+  \command{setchordscheme}[\marg{options}]
     The setup command for \guitarchordschemes.
 \end{commands}
 
@@ -298,6 +322,8 @@ Below every option and its corresponding default setting is described.
     The basic $x$ unit for the \TikZ{} picture the chord scheme is set in.
   \keyval{y-unit}{dim}\Default{.8cm}
     The basic $y$ unit for the \TikZ{} picture the chord scheme is set in.
+  \keyval{rotate}{angle}\Default{0}
+    \sinceversion{0.7}Rotates the diagram counter-clockwise by \meta{angle}.
   \keyval{finger-format}{\TeX{} code}\Default{\cs*{sffamily}\cs*{small}}
     The format the numbers for the fingers are typeset with.
   \keyval{finger-format+}{\TeX{} code}\Default
@@ -310,16 +336,23 @@ Below every option and its corresponding default setting is described.
     The format the chord name/symbol is typeset with.
   \keyval{name-format+}{\TeX{} code}\Default
     Code to be appended to \option{name-format}.
-  \keyval{chord-name-format}{cs}\Default{\cs*{@firstofone}}
+  \keybool{name-below}\Default{false}
+    \sinceversion{0.7}If set to \code{true} the name will be written below
+    instead of above the diagram.
+  \keyval{name-distance}{dim}\Default{.5em}
+    \sinceversion{0.7}The distance between name and chord diagram.
+  \keyval{chord-name-cs}{cs}\Default{\cs*{@firstofone}}
     \sinceversion{0.5}The command that is used to parse the chord name.
     \meta{cs} needs to be a command that takes a mandatory argument.
-  \keyval{scales-name-format}{cs}\Default{\cs*{@firstofone}}
+  \keyval{scales-name-cs}{cs}\Default{\cs*{@firstofone}}
     \sinceversion{0.5}The command that is used to parse the scales name.
     \meta{cs} needs to be a command that takes a mandatory argument.
   \keyval{string-name-format}{\TeX{} code}\Default{\cs*{sffamily}\cs*{small}}
     The format the names of the strings are typeset with.
   \keyval{string-name-format+}{\TeX{} code}\Default
     Code to be appended to \option{string-name-format}.
+  \keyval{strings}{num}\Default{6}
+    \sinceversion{0.7}Sets the number of strings.
   \keyval{chord-frets}{number}\Default{4}
     \sinceversion{0.6}The default number of frets of a chord scheme.
     \meta{number} must be at least 4. 
@@ -359,7 +392,12 @@ Below every option and its corresponding default setting is described.
     This is equivalent to \cs*{tikzset}\Marg{muted style/.style=\{\meta{\TikZ{}
         style}\}}.
   \keyval{tuning}{comma separated list of string names}\Default{E,B,G,D,A,E}
-    The tuning.
+    The tuning.  The strings are named from first to sixth string.  If you
+    want to remove all names use \keyis{tuning}{,,,,,}.
+  \keybool{restrict-bounding-box}\Default{false}
+    \sinceversion{0.7}If set to \code{true} the bounding box of the \TikZ{}
+    picture is not extended by string names, position labels etc.\@ but
+    restricted (more or less) only to the chord scheme diagram itself.
 \end{options}
 
 \end{document}
